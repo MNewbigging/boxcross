@@ -17,8 +17,8 @@ export class GameState {
   private controls: OrbitControls;
   private clock = new THREE.Clock();
 
-  private player?: THREE.Object3D;
-  private playerMoveSpeed = 5;
+  private player!: THREE.Object3D;
+  private playerMoveSpeed = 15;
   private worldXMin = 10;
   private worldXMax = 30;
 
@@ -26,16 +26,17 @@ export class GameState {
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
   ) {
-    this.worldBuilder = new WorldBuilder(gameLoader.modelLoader);
+    this.worldBuilder = new WorldBuilder(gameLoader.modelLoader, this.scene);
 
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
       45,
       canvas.clientWidth / canvas.clientHeight,
       0.1,
-      100
+      1000
     );
     this.camera.position.set(this.worldBuilder.xMid, 30, 0);
+    this.camera.lookAt(this.worldBuilder.xMid, 0, -10);
 
     // Setup renderer
     this.renderer = new Renderer(canvas, this.camera, this.scene);
@@ -64,12 +65,7 @@ export class GameState {
 
   private setupGame() {
     // Build the starting lanes
-    const lane = this.worldBuilder.buildLane();
-    this.scene.add(lane);
-
-    const lane2 = this.worldBuilder.buildLane();
-    lane2.position.z = -20;
-    this.scene.add(lane2);
+    this.worldBuilder.setup();
 
     // Add the player
     const box = this.gameLoader.modelLoader.get("box");
@@ -87,14 +83,17 @@ export class GameState {
     }
 
     if (this.keyboardListener.isKeyPressed("a")) {
-      this.player.position.x -= this.playerMoveSpeed * dt;
+      const newPos = this.player.position.x - this.playerMoveSpeed * dt;
+      this.player.position.x = Math.max(newPos, this.worldBuilder.xMin);
     } else if (this.keyboardListener.isKeyPressed("d")) {
-      this.player.position.x += this.playerMoveSpeed * dt;
+      const newPos = this.player.position.x + this.playerMoveSpeed * dt;
+      this.player.position.x = Math.min(newPos, this.worldBuilder.xMax);
     }
     if (this.keyboardListener.isKeyPressed("w")) {
       this.player.position.z -= this.playerMoveSpeed * dt;
     } else if (this.keyboardListener.isKeyPressed("s")) {
-      this.player.position.z += this.playerMoveSpeed * dt;
+      const newPos = this.player.position.z + this.playerMoveSpeed * dt;
+      this.player.position.z = Math.min(newPos, this.worldBuilder.zMin);
     }
   }
 
@@ -103,7 +102,14 @@ export class GameState {
 
     const dt = this.clock.getDelta();
 
+    // Update player
     this.playerMovement(dt);
+
+    // Update camera
+    //this.camera.position.z = this.player?.position.z;
+
+    // Update world
+    this.worldBuilder.laneCheck(this.player.position.z);
 
     this.renderer.render();
     this.controls.update();
