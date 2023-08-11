@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { action, makeAutoObservable, observable } from "mobx";
 import { gsap } from "gsap";
 
 import { GameLoader } from "../loaders/game-loader";
@@ -12,7 +13,7 @@ export class GameState {
   private worldManager: WorldManager;
   private player!: THREE.Object3D;
   private playerMoveSpeed = 15;
-  private gameOver = false;
+  @observable gameOver = false;
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
@@ -24,6 +25,8 @@ export class GameState {
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
   ) {
+    makeAutoObservable(this);
+
     this.worldManager = new WorldManager(gameLoader.modelLoader, this.scene);
 
     // Setup camera
@@ -107,7 +110,7 @@ export class GameState {
     }
   }
 
-  private endGame() {
+  @action endGame() {
     this.gameOver = true;
 
     // Squash the box

@@ -8,7 +8,7 @@ export class AppState {
   @observable gameStarted = false;
 
   readonly gameLoader = new GameLoader();
-  private gameState?: GameState;
+  gameState?: GameState;
 
   constructor() {
     makeAutoObservable(this);

@@ -4,7 +4,8 @@ import React from "react";
 import { observer } from "mobx-react-lite";
 
 import { AppState } from "./app-state";
-import { LoadingScreen } from "./loading-screen/loading-screen";
+import { GameOverScreen } from "./components/game-over-screen/game-over-screen";
+import { LoadingScreen } from "./components/loading-screen/loading-screen";
 
 interface AppProps {
   appState: AppState;
@@ -16,6 +17,8 @@ export const App: React.FC<AppProps> = observer(({ appState }) => {
       <canvas id="canvas"></canvas>
 
       {!appState.gameStarted && <LoadingScreen appState={appState} />}
+
+      {appState.gameState?.gameOver && <GameOverScreen appState={appState} />}
     </div>
   );
 });
