@@ -4,6 +4,6 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/traffic-town/", // replace with the repo name
+  base: "/boxcross/", // replace with the repo name
   assetsInclude: ["**/*.gltf"],
 });
