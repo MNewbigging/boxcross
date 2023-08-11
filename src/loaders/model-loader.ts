@@ -1,6 +1,18 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
+export enum ModelNames {
+  CAR = "car",
+  ROAD = "road",
+  ROAD_ALT = "road-alt",
+  PAVEMENT = "pavement",
+  PAVEMENT_ALT = "pavement-alt",
+  PAVEMENT_DRAIN = "pavement-drain",
+  PAVEMENT_PANEL = "pavement-panel",
+  PAVEMENT_GRATE = "pavement-grate",
+  PAVEMENT_DIP = "pavement-dip",
+}
+
 export class ModelLoader {
   loading = false;
   readonly models = new Map<string, THREE.Object3D>();
@@ -8,7 +20,16 @@ export class ModelLoader {
   private loadingManager = new THREE.LoadingManager();
 
   get(modelName: string) {
-    return this.models.get(modelName)?.clone();
+    // Clone the model
+    const clone = this.models.get(modelName)?.clone();
+    if (!clone) {
+      return undefined;
+    }
+
+    // Clear its position
+    clone.position.set(0, 0, 0);
+
+    return clone;
   }
 
   load(onLoad: () => void) {
@@ -53,9 +74,19 @@ export class ModelLoader {
       this.models.set("box", gltf.scene);
     });
 
-    const trafficTownUrl = new URL("/trafficTown.glb", import.meta.url).href;
-    gltfLoader.load(trafficTownUrl, (gltf) => {
-      this.models.set("traffic-town", gltf.scene);
+    const boxCrossUrl = new URL("/boxCross.glb", import.meta.url).href;
+    gltfLoader.load(boxCrossUrl, (gltf) => {
+      const parent = gltf.scene;
+
+      // Pull out the individual models
+      Object.values(ModelNames).forEach((name) => {
+        const object = parent.getObjectByName(name);
+        if (object) {
+          this.models.set(name, object);
+        }
+      });
+
+      this.models.set("box-cross", gltf.scene);
     });
   }
 }
