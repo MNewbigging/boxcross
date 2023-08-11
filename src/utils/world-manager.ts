@@ -29,7 +29,7 @@ export class WorldManager {
   // Road details
   private itemWidth = 5; // Width of an item like a road piece
   private itemCount = 14; // Number of road pieces in a row
-  private xMaxArea = 30; // Max metres the player can move left to right
+  private xMaxArea = 40; // Max metres the player can move left to right
   private roadDepth = 20;
   private roadBuffer = 2;
   private roads: Road[] = [];
@@ -138,7 +138,7 @@ export class WorldManager {
     }
 
     // Only keep one previous road
-    if (roadIdx >= 2) {
+    if (roadIdx >= 3) {
       this.removeOldestRoad();
     }
   }
@@ -173,6 +173,7 @@ export class WorldManager {
 
     // Remove objects from the scene
     this.scene.remove(oldestRoad.objects);
+    oldestRoad.cars.forEach((car) => this.scene.remove(car.object));
 
     // Remove the lane
     this.roads.splice(0, 1);

@@ -17,8 +17,10 @@ export class GameState {
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
+  private cameraMoveSpeed = 1;
+  private playerInView = false;
   private renderer: Renderer;
-  private controls: OrbitControls;
+  //private controls: OrbitControls;
   private clock = new THREE.Clock();
 
   constructor(
@@ -45,9 +47,9 @@ export class GameState {
     this.scene.background = new THREE.Color("#1680AF");
 
     // Camera controls
-    this.controls = new OrbitControls(this.camera, canvas);
-    this.controls.enableDamping = true;
-    this.controls.target.set(this.worldManager.xMid, 0, -10);
+    // this.controls = new OrbitControls(this.camera, canvas);
+    // this.controls.enableDamping = true;
+    // this.controls.target.set(this.worldManager.xMid, 0, -10);
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -95,7 +97,9 @@ export class GameState {
       this.player.position.x = Math.min(newPos, this.worldManager.xMax);
     }
     if (this.keyboardListener.isKeyPressed("w")) {
-      this.player.position.z -= this.playerMoveSpeed * dt;
+      if (this.playerInView) {
+        this.player.position.z -= this.playerMoveSpeed * dt;
+      }
     } else if (this.keyboardListener.isKeyPressed("s")) {
       const newPos = this.player.position.z + this.playerMoveSpeed * dt;
       this.player.position.z = Math.min(newPos, this.worldManager.zMin);
@@ -110,11 +114,33 @@ export class GameState {
     }
   }
 
+  private setPlayerInView() {
+    this.camera.updateMatrix();
+    this.camera.updateProjectionMatrix();
+
+    const frustum = new THREE.Frustum();
+    const matrix = new THREE.Matrix4().multiplyMatrices(
+      this.camera.projectionMatrix,
+      this.camera.matrixWorldInverse
+    );
+    frustum.setFromProjectionMatrix(matrix);
+
+    // Slightly farther back from player so entire box is visible
+    const position = new THREE.Vector3(
+      this.player.position.x,
+      0,
+      this.player.position.z - 2
+    );
+
+    this.playerInView = frustum.containsPoint(position);
+  }
+
   @action endGame() {
     this.gameOver = true;
 
     // Squash the box
-    this.controls.target.copy(this.player.position);
+    //this.controls.target.copy(this.player.position);
+    this.camera.lookAt(this.player.position);
     gsap.to(this.player.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
     gsap.to(this.camera, {
       duration: 2,
@@ -133,9 +159,10 @@ export class GameState {
     if (!this.gameOver) {
       // Update player
       this.playerMovement(dt);
+      this.setPlayerInView();
 
       // Update camera
-      //this.camera.position.z = this.player?.position.z;
+      this.camera.position.z -= this.cameraMoveSpeed * dt;
 
       // Collision check
       this.playerCollisionCheck();
@@ -145,6 +172,6 @@ export class GameState {
     this.worldManager.update(this.player, dt);
 
     this.renderer.render();
-    this.controls.update();
+    //this.controls.update();
   };
 }
