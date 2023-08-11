@@ -5,6 +5,7 @@ import { ModelLoader, ModelNames } from "../loaders/model-loader";
 interface Car {
   object: THREE.Object3D;
   speed: number;
+  direction: number; // 1 for right, -1 for left
   toDestroy: boolean;
 }
 
@@ -14,8 +15,7 @@ interface Road {
   zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
   zLeftLane: number; // Where to spawn cars moving from left-right
   zRightLane: number; // Where to spawn cars moving from right-left
-  leftLaneCars: Car[];
-  rightLaneCars: Car[];
+  cars: Car[];
 }
 
 export class WorldManager {
@@ -34,8 +34,6 @@ export class WorldManager {
   private roadBuffer = 2;
   private roads: Road[] = [];
 
-  // Vehicle details
-
   constructor(private modelLoader: ModelLoader, private scene: THREE.Scene) {
     // Set world vars
     this.width = this.itemWidth * this.itemCount;
@@ -52,10 +50,9 @@ export class WorldManager {
       objects: startLaneObjects,
       zMin: startLaneObjects.position.z,
       zMax: startLaneObjects.position.z - this.roadDepth,
-      leftLaneCars: [],
-      rightLaneCars: [],
-      zLeftLane: -7.5,
-      zRightLane: -12.5,
+      cars: [],
+      zLeftLane: -12.5,
+      zRightLane: -7.5,
     });
 
     // Then as many lanes as the lane buffer dictates
@@ -72,32 +69,48 @@ export class WorldManager {
     this.roads.forEach((road) => this.updateRoad(road, dt));
   }
 
+  playerHitCar(player: THREE.Object3D) {
+    const playerZ = player.position.z;
+    const currentRoad = this.roads.find(
+      (road) => playerZ > road.zMax && playerZ < road.zMin
+    );
+    if (!currentRoad) {
+      return;
+    }
+
+    // Test intersections with cars on the road
+    for (const car of currentRoad.cars) {
+      const carBox = new THREE.Box3().setFromObject(car.object);
+      const playerBox = new THREE.Box3().setFromObject(player);
+
+      if (carBox.intersectsBox(playerBox)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   private updateRoad(road: Road, dt: number) {
     // Do any cars need spawning?
-    if (road.leftLaneCars.length < 1) {
+    if (road.cars.length < 1) {
       const car = this.modelLoader.get("car");
       if (car) {
         // Place at left lane start point, face right
         car.lookAt(1, 0, 0);
         car.position.set(0, 0, road.zLeftLane);
         this.scene.add(car);
-        road.leftLaneCars.push({ object: car, speed: 5, toDestroy: false });
-      }
-    }
-
-    if (road.rightLaneCars.length < 1) {
-      const car = this.modelLoader.get("car");
-      if (car) {
-        // Place at left lane start point, face right
-        car.lookAt(-1, 0, 0);
-        car.position.set(this.width, 0, road.zRightLane);
-        this.scene.add(car);
-        road.rightLaneCars.push({ object: car, speed: 5, toDestroy: false });
+        road.cars.push({
+          object: car,
+          speed: 5,
+          direction: 1,
+          toDestroy: false,
+        });
       }
     }
 
     // Update cars
-    road.leftLaneCars.forEach((car) => {
+    road.cars.forEach((car) => {
       // Update car position
       car.object.position.x += car.speed * dt;
       // Check against bounds
@@ -107,36 +120,25 @@ export class WorldManager {
       }
     });
 
-    road.rightLaneCars.forEach((car) => {
-      // Update car position
-      car.object.position.x -= car.speed * dt;
-      // Check against bounds
-      if (car.object.position.x < 0) {
-        this.scene.remove(car.object);
-        car.toDestroy = true;
-      }
-    });
-
     // Remove any cars marked for destruction
-    road.leftLaneCars = road.leftLaneCars.filter((car) => !car.toDestroy);
-    road.rightLaneCars = road.rightLaneCars.filter((car) => !car.toDestroy);
+    road.cars = road.cars.filter((car) => !car.toDestroy);
   }
 
   private roadCheck(playerZ: number) {
-    // Which lane is player on right now
-    const laneIdx = this.roads.findIndex(
-      (lane) => playerZ > lane.zMax && playerZ < lane.zMin
+    // Which road is player on right now
+    const roadIdx = this.roads.findIndex(
+      (road) => playerZ > road.zMax && playerZ < road.zMin
     );
 
-    // If remaining lanes ahead count is less than lane buffer, spawn a lane
-    const lanesAhead = this.roads.length - (laneIdx + 1);
-    if (lanesAhead < this.roadBuffer) {
+    // If remaining roads ahead count is less than road buffer, spawn a lane
+    const roadsAhead = this.roads.length - (roadIdx + 1);
+    if (roadsAhead < this.roadBuffer) {
       // Spawn the next lane
       this.spawnNextRoad();
     }
 
-    // Only keep one previous lane
-    if (laneIdx >= 2) {
+    // Only keep one previous road
+    if (roadIdx >= 2) {
       this.removeOldestRoad();
     }
   }
@@ -154,8 +156,7 @@ export class WorldManager {
       objects: laneObjects,
       zMin,
       zMax: laneObjects.position.z - this.roadDepth,
-      leftLaneCars: [],
-      rightLaneCars: [],
+      cars: [],
       zLeftLane: zMin - 12.5,
       zRightLane: zMin - 7.5,
     });
@@ -165,13 +166,13 @@ export class WorldManager {
   }
 
   private removeOldestRoad() {
-    const oldestLane = this.roads[0];
+    const oldestRoad = this.roads[0];
 
     // Update the new world zMin now that a lane is being removed
-    this.zMin = oldestLane.zMax;
+    this.zMin = oldestRoad.zMax;
 
     // Remove objects from the scene
-    this.scene.remove(oldestLane.objects);
+    this.scene.remove(oldestRoad.objects);
 
     // Remove the lane
     this.roads.splice(0, 1);

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { gsap } from "gsap";
 
 import { GameLoader } from "../loaders/game-loader";
 import { KeyboardListener } from "../listeners/keyboard-listener";
@@ -8,17 +9,16 @@ import { WorldManager } from "../utils/world-manager";
 
 export class GameState {
   private keyboardListener = new KeyboardListener();
-
   private worldManager: WorldManager;
+  private player!: THREE.Object3D;
+  private playerMoveSpeed = 15;
+  private gameOver = false;
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
   private renderer: Renderer;
   private controls: OrbitControls;
   private clock = new THREE.Clock();
-
-  private player!: THREE.Object3D;
-  private playerMoveSpeed = 15;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -95,16 +95,48 @@ export class GameState {
     }
   }
 
+  private playerCollisionCheck() {
+    // Check against cars in this lane
+    const playerHitCar = this.worldManager.playerHitCar(this.player);
+    if (playerHitCar) {
+      this.endGame();
+    }
+  }
+
+  private endGame() {
+    console.log("player hit car");
+
+    this.gameOver = true;
+
+    // Squash the box
+    // this.player.scale.setY(0.1);
+    // this.player.scale.x += 0.4;
+    this.controls.target.copy(this.player.position);
+    gsap.to(this.player.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
+    gsap.to(this.camera, {
+      duration: 2,
+      zoom: 2,
+      onUpdate: () => {
+        this.camera.updateProjectionMatrix();
+      },
+    });
+  }
+
   private update = () => {
     requestAnimationFrame(this.update);
 
     const dt = this.clock.getDelta();
 
-    // Update player
-    this.playerMovement(dt);
+    if (!this.gameOver) {
+      // Update player
+      this.playerMovement(dt);
 
-    // Update camera
-    //this.camera.position.z = this.player?.position.z;
+      // Update camera
+      //this.camera.position.z = this.player?.position.z;
+
+      // Collision check
+      this.playerCollisionCheck();
+    }
 
     // Update world
     this.worldManager.update(this.player, dt);
