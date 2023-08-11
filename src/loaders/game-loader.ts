@@ -18,7 +18,7 @@ export class GameLoader {
     THREE.Cache.enabled = true;
   }
 
-  @action load(onLoad: () => void) {
+  @action load(onLoad?: () => void) {
     this.onLoad = onLoad;
 
     this.loading = true;

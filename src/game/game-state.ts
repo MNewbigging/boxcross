@@ -58,6 +58,10 @@ export class GameState {
 
     // Start game
     this.setupGame();
+    //this.update();
+  }
+
+  startGame() {
     this.update();
   }
 
@@ -104,13 +108,9 @@ export class GameState {
   }
 
   private endGame() {
-    console.log("player hit car");
-
     this.gameOver = true;
 
     // Squash the box
-    // this.player.scale.setY(0.1);
-    // this.player.scale.x += 0.4;
     this.controls.target.copy(this.player.position);
     gsap.to(this.player.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
     gsap.to(this.camera, {

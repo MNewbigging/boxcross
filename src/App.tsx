@@ -15,7 +15,7 @@ export const App: React.FC<AppProps> = observer(({ appState }) => {
     <div className="app">
       <canvas id="canvas"></canvas>
 
-      {appState.gameLoader.loading && <LoadingScreen />}
+      {!appState.gameStarted && <LoadingScreen appState={appState} />}
     </div>
   );
 });
