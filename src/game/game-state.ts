@@ -18,7 +18,7 @@ export class GameState {
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
   private cameraMoveSpeed = 1;
-  private playerInView = false;
+  private playerCameraDistance = 0;
   private renderer: Renderer;
   //private controls: OrbitControls;
   private clock = new THREE.Clock();
@@ -97,7 +97,8 @@ export class GameState {
       this.player.position.x = Math.min(newPos, this.worldManager.xMax);
     }
     if (this.keyboardListener.isKeyPressed("w")) {
-      if (this.playerInView) {
+      // Prevent moving beyond camera view
+      if (this.playerCameraDistance < 24) {
         this.player.position.z -= this.playerMoveSpeed * dt;
       }
     } else if (this.keyboardListener.isKeyPressed("s")) {
@@ -114,25 +115,8 @@ export class GameState {
     }
   }
 
-  private setPlayerInView() {
-    this.camera.updateMatrix();
-    this.camera.updateProjectionMatrix();
-
-    const frustum = new THREE.Frustum();
-    const matrix = new THREE.Matrix4().multiplyMatrices(
-      this.camera.projectionMatrix,
-      this.camera.matrixWorldInverse
-    );
-    frustum.setFromProjectionMatrix(matrix);
-
-    // Slightly farther back from player so entire box is visible
-    const position = new THREE.Vector3(
-      this.player.position.x,
-      0,
-      this.player.position.z - 2
-    );
-
-    this.playerInView = frustum.containsPoint(position);
+  private setPlayerCameraDistance() {
+    this.playerCameraDistance = this.camera.position.z - this.player.position.z;
   }
 
   @action endGame() {
@@ -159,7 +143,7 @@ export class GameState {
     if (!this.gameOver) {
       // Update player
       this.playerMovement(dt);
-      this.setPlayerInView();
+      this.setPlayerCameraDistance();
 
       // Update camera
       this.camera.position.z -= this.cameraMoveSpeed * dt;
