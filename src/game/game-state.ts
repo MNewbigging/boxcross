@@ -4,10 +4,12 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { GameLoader } from "../loaders/game-loader";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { Renderer } from "./renderer";
-import { buildLane } from "../utils/world-builder";
+import { WorldBuilder } from "../utils/world-builder";
 
 export class GameState {
   private keyboardListener = new KeyboardListener();
+
+  private worldBuilder: WorldBuilder;
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
@@ -17,19 +19,23 @@ export class GameState {
 
   private player?: THREE.Object3D;
   private playerMoveSpeed = 5;
+  private worldXMin = 10;
+  private worldXMax = 30;
 
   constructor(
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
   ) {
+    this.worldBuilder = new WorldBuilder(gameLoader.modelLoader);
+
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
-      75,
+      45,
       canvas.clientWidth / canvas.clientHeight,
       0.1,
-      1000
+      100
     );
-    this.camera.position.set(25, 30, 0);
+    this.camera.position.set(this.worldBuilder.xMid, 30, 0);
 
     // Setup renderer
     this.renderer = new Renderer(canvas, this.camera, this.scene);
@@ -39,7 +45,7 @@ export class GameState {
     // Camera controls
     this.controls = new OrbitControls(this.camera, canvas);
     this.controls.enableDamping = true;
-    this.controls.target.set(25, 0, -10);
+    this.controls.target.set(this.worldBuilder.xMid, 0, -10);
 
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -58,17 +64,17 @@ export class GameState {
 
   private setupGame() {
     // Build the starting lanes
-    const lane = buildLane(this.gameLoader.modelLoader);
+    const lane = this.worldBuilder.buildLane();
     this.scene.add(lane);
 
-    const lane2 = buildLane(this.gameLoader.modelLoader);
+    const lane2 = this.worldBuilder.buildLane();
     lane2.position.z = -20;
     this.scene.add(lane2);
 
     // Add the player
     const box = this.gameLoader.modelLoader.get("box");
     if (box) {
-      box.position.set(25, 0.01, -2.5);
+      box.position.set(this.worldBuilder.xMid, 0.01, -2.5);
       box.scale.set(2, 2, 2);
       this.scene.add(box);
       this.player = box;
