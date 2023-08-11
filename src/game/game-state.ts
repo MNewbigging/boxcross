@@ -17,8 +17,10 @@ export class GameState {
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
-  private cameraMoveSpeed = 1;
+  private cameraMoveSpeed = 3;
   private playerCameraDistance = 0;
+  @observable outOfViewTimer = 0;
+  private outOfViewLimit = 3;
   private renderer: Renderer;
   //private controls: OrbitControls;
   private clock = new THREE.Clock();
@@ -115,8 +117,22 @@ export class GameState {
     }
   }
 
-  private setPlayerCameraDistance() {
+  @action checkPlayerCameraDistance(dt: number) {
+    // Assign new distance value
     this.playerCameraDistance = this.camera.position.z - this.player.position.z;
+
+    // If player is behind camera by too much,
+    if (this.playerCameraDistance < -3) {
+      // Start countdown timer
+      this.outOfViewTimer += dt;
+
+      if (this.outOfViewTimer >= this.outOfViewLimit) {
+        this.endGame();
+      }
+    } else {
+      // Reset timer
+      this.outOfViewTimer = 0;
+    }
   }
 
   @action endGame() {
@@ -143,7 +159,7 @@ export class GameState {
     if (!this.gameOver) {
       // Update player
       this.playerMovement(dt);
-      this.setPlayerCameraDistance();
+      this.checkPlayerCameraDistance(dt);
 
       // Update camera
       this.camera.position.z -= this.cameraMoveSpeed * dt;
