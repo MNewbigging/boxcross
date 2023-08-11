@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import * as YUKA from "yuka";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
@@ -11,6 +12,11 @@ export class GameState {
   private renderer: THREE.WebGLRenderer;
   private controls: OrbitControls;
 
+  private entityManager = new YUKA.EntityManager();
+  private time = new YUKA.Time();
+  private vehicle?: YUKA.Vehicle;
+  private path?: YUKA.Path;
+
   constructor(
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
@@ -22,8 +28,9 @@ export class GameState {
       0.1,
       100
     );
-    this.camera.position.z = 1.6;
-    this.camera.position.y = 1.2;
+    this.camera.position.z = 15;
+    this.camera.position.y = 15;
+    this.camera.position.x = 15;
 
     // Setup renderer
     this.renderer = new THREE.WebGLRenderer({ canvas });
@@ -48,16 +55,86 @@ export class GameState {
     const directLight = new THREE.DirectionalLight();
     this.scene.add(directLight);
 
-    // Add box
-    const box = this.gameLoader.modelLoader.get("box");
-    if (box) {
-      addGui(box, "box");
-      this.scene.add(box);
+    // Add scene object
+    const trafficTown = this.gameLoader.modelLoader.get("traffic-town");
+    if (!trafficTown) {
+      return;
     }
+
+    this.scene.add(trafficTown);
+
+    // Pull out the road and car objects
+    const road = trafficTown.getObjectByName("Road");
+    const car = trafficTown.getObjectByName("Car");
+    if (!road || !car) {
+      console.log("Could not find road or car");
+      return;
+    }
+
+    console.log("object", trafficTown);
+
+    const box = this.gameLoader.modelLoader.get("box");
+    if (!box) {
+      return;
+    }
+
+    //this.scene.add(box);
+
+    this.setupYuka(road, car);
 
     // Start game
     this.update();
   }
+
+  private setupYuka(road: THREE.Object3D, car: THREE.Object3D) {
+    // Yuka will handle the matrix updates itself
+    car.matrixAutoUpdate = false;
+
+    // Setup vehicle
+    const vehicle = new YUKA.Vehicle();
+    vehicle.maxSpeed = 200;
+    vehicle.setRenderComponent(car, this.syncVehicle);
+
+    // Pull out path points from the road
+    const laneOneEntry = road.getObjectByName("Lane_1_Entry")?.position;
+    const laneOneExit = road.getObjectByName("Lane_1_Exit")?.position;
+    if (!laneOneEntry || !laneOneExit) {
+      console.log("Could not find lane 1 points");
+      return;
+    }
+
+    const box1 = this.gameLoader.modelLoader.get("box");
+    if (box1) {
+      box1.position.copy(laneOneEntry);
+      this.scene.add(box1);
+    }
+    const box2 = this.gameLoader.modelLoader.get("box");
+    if (box2) {
+      box2.position.copy(laneOneExit);
+      this.scene.add(box2);
+    }
+
+    const path = new YUKA.Path();
+    path.add(new YUKA.Vector3(laneOneEntry.x, laneOneEntry.y, laneOneEntry.z));
+    path.add(new YUKA.Vector3(laneOneExit.x, laneOneExit.y, laneOneExit.z));
+    console.log("path", path);
+
+    // Put vehicle at start of path
+    vehicle.position.copy(path.current());
+    this.path = path;
+
+    // Setup vehicle behaviour
+    const followPathBehaviour = new YUKA.FollowPathBehavior(path, 0.5);
+    vehicle.steering.add(followPathBehaviour);
+
+    // Add vehicle entity to the manager
+    this.entityManager.add(vehicle);
+    this.vehicle = vehicle;
+  }
+
+  private syncVehicle = (entity: YUKA.GameEntity, renderComponent: any) => {
+    renderComponent.matrix.copy(entity.worldMatrix);
+  };
 
   private onCanvasResize = () => {
     this.renderer.setSize(
@@ -75,6 +152,16 @@ export class GameState {
 
   private update = () => {
     requestAnimationFrame(this.update);
+
+    const dt = this.time.update().getDelta();
+
+    this.entityManager.update(dt);
+
+    // if (this.path?.finished()) {
+    //   console.log("finished");
+    // } else {
+    //   console.log("active");
+    // }
 
     this.renderer.render(this.scene, this.camera);
     this.controls.update();

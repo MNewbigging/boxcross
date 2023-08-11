@@ -52,5 +52,10 @@ export class ModelLoader {
 
       this.models.set("box", gltf.scene);
     });
+
+    const trafficTownUrl = new URL("/trafficTown.glb", import.meta.url).href;
+    gltfLoader.load(trafficTownUrl, (gltf) => {
+      this.models.set("traffic-town", gltf.scene);
+    });
   }
 }
