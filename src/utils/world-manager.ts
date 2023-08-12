@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { makeAutoObservable, observable } from "mobx";
 
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
 
@@ -10,7 +11,8 @@ interface Car {
 }
 
 interface Road {
-  objects: THREE.Group;
+  index: number; // out of all total roads
+  objects: THREE.Group; // the road and pavement objects
   zMin: number; // Closest z value
   zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
   zLeftLane: number; // Where to spawn cars moving from left-right
@@ -25,6 +27,7 @@ export class WorldManager {
   xMax = 0;
   xMid = 0;
   zMin = 0;
+  @observable roadsCrossed = 0;
 
   // Road details
   private itemWidth = 5; // Width of an item like a road piece
@@ -35,6 +38,8 @@ export class WorldManager {
   private roads: Road[] = [];
 
   constructor(private modelLoader: ModelLoader, private scene: THREE.Scene) {
+    makeAutoObservable(this);
+
     // Set world vars
     this.width = this.itemWidth * this.itemCount;
     this.xMid = this.width / 2;
@@ -47,6 +52,7 @@ export class WorldManager {
     const startLaneObjects = this.buildRoadObjects();
     this.scene.add(startLaneObjects);
     this.roads.push({
+      index: 0,
       objects: startLaneObjects,
       zMin: startLaneObjects.position.z,
       zMax: startLaneObjects.position.z - this.roadDepth,
@@ -94,19 +100,17 @@ export class WorldManager {
   private updateRoad(road: Road, dt: number) {
     // Do any cars need spawning?
     if (road.cars.length < 1) {
+      // Place at left lane start point, face right
       const car = this.modelLoader.get("car");
-      if (car) {
-        // Place at left lane start point, face right
-        car.lookAt(1, 0, 0);
-        car.position.set(0, 0, road.zLeftLane);
-        this.scene.add(car);
-        road.cars.push({
-          object: car,
-          speed: 5,
-          direction: 1,
-          toDestroy: false,
-        });
-      }
+      car.lookAt(1, 0, 0);
+      car.position.set(0, 0, road.zLeftLane);
+      this.scene.add(car);
+      road.cars.push({
+        object: car,
+        speed: 5,
+        direction: 1,
+        toDestroy: false,
+      });
     }
 
     // Update cars
@@ -141,6 +145,9 @@ export class WorldManager {
     if (roadIdx >= 3) {
       this.removeOldestRoad();
     }
+
+    // Update roads crossed value
+    this.roadsCrossed = this.roads[roadIdx].index;
   }
 
   private spawnNextRoad() {
@@ -153,6 +160,7 @@ export class WorldManager {
     // Add lane data
     const zMin = laneObjects.position.z;
     this.roads.push({
+      index: this.roads.length,
       objects: laneObjects,
       zMin,
       zMax: laneObjects.position.z - this.roadDepth,
@@ -181,33 +189,83 @@ export class WorldManager {
 
   private buildRoadObjects(): THREE.Group {
     // A lane consists of road and pavement either side
-    const lane = new THREE.Group();
+    const roadGroup = new THREE.Group();
 
-    // Simple road
+    // Road pieces
     const road = this.modelLoader.get(ModelNames.ROAD);
-    if (road) {
-      for (let x = 0; x < this.itemCount; x++) {
-        const roadPiece = road.clone();
-        roadPiece.position.set(x * this.itemWidth, 0, -5);
-        lane.add(roadPiece);
+    const roadAlt = this.modelLoader.get(ModelNames.ROAD_ALT);
+    const roadCrossing = this.modelLoader.get(ModelNames.ROAD_CROSSING);
+
+    for (let x = 0; x < this.itemCount; x++) {
+      // Randomise the road chosen
+      let roadPiece = road.clone();
+      const randomNumber = Math.random();
+
+      // Crossings make up 10% of roads
+      if (randomNumber < 0.1) {
+        roadPiece = roadCrossing.clone();
+      } else if (randomNumber < 0.5) {
+        // Alt road makes up 40% of roads
+        roadPiece = roadAlt.clone();
       }
+
+      // Position and add the road
+      roadPiece.position.set(x * this.itemWidth, 0, -5);
+      roadGroup.add(roadPiece);
     }
 
     // Pavements
     const pavement = this.modelLoader.get(ModelNames.PAVEMENT);
-    if (pavement) {
-      for (let x = 0; x < this.itemCount; x++) {
-        const pavementPiece = pavement.clone();
-        pavementPiece.position.set(x * this.itemWidth, 0, -15);
-        lane.add(pavementPiece);
+    const pavementAlt = this.modelLoader.get(ModelNames.PAVEMENT_ALT);
 
-        const otherSide = pavement.clone();
-        otherSide.rotateY(Math.PI);
-        otherSide.position.set((x + 1) * this.itemWidth, 0, -5);
-        lane.add(otherSide);
+    const uniquePavements = [
+      this.modelLoader.get(ModelNames.PAVEMENT_DIP),
+      this.modelLoader.get(ModelNames.PAVEMENT_DRAIN),
+      this.modelLoader.get(ModelNames.PAVEMENT_GRATE),
+      this.modelLoader.get(ModelNames.PAVEMENT_PANEL),
+    ];
+
+    // Pavement on far side
+    for (let x = 0; x < this.itemCount; x++) {
+      // Randomise chosen pavement
+      let pavementPiece = pavement.clone();
+      const randomNumber = Math.random();
+
+      // Small chance of a unique pavement piece
+      if (randomNumber < 0.2) {
+        // Pick a random unique piece
+        const randomIdx = Math.floor(Math.random() * uniquePavements.length);
+        pavementPiece = uniquePavements[randomIdx].clone();
+      } else if (randomNumber < 0.6) {
+        // Remaining 50% chance of being either normal or alt piece
+        pavementPiece = pavementAlt.clone();
       }
+
+      pavementPiece.position.set(x * this.itemWidth, 0, -15);
+      roadGroup.add(pavementPiece);
     }
 
-    return lane;
+    // Pavement on near side
+    for (let x = 0; x < this.itemCount; x++) {
+      // Randomise chosen pavement
+      let pavementPiece = pavement.clone();
+      const randomNumber = Math.random();
+
+      // Small chance of a unique pavement piece
+      if (randomNumber < 0.2) {
+        // Pick a random unique piece
+        const randomIdx = Math.floor(Math.random() * uniquePavements.length);
+        pavementPiece = uniquePavements[randomIdx].clone();
+      } else if (randomNumber < 0.6) {
+        // Remaining 50% chance of being either normal or alt piece
+        pavementPiece = pavementAlt.clone();
+      }
+
+      pavementPiece.rotateY(Math.PI);
+      pavementPiece.position.set((x + 1) * this.itemWidth, 0, -5);
+      roadGroup.add(pavementPiece);
+    }
+
+    return roadGroup;
   }
 }

@@ -10,7 +10,7 @@ import { WorldManager } from "../utils/world-manager";
 
 export class GameState {
   private keyboardListener = new KeyboardListener();
-  private worldManager: WorldManager;
+  worldManager: WorldManager;
   private player!: THREE.Object3D;
   private playerMoveSpeed = 15;
   @observable gameOver = false;
@@ -78,12 +78,10 @@ export class GameState {
 
     // Add the player
     const box = this.gameLoader.modelLoader.get("box");
-    if (box) {
-      box.position.set(this.worldManager.xMid, 0.01, -2.5);
-      box.scale.set(2, 2, 2);
-      this.scene.add(box);
-      this.player = box;
-    }
+    box.position.set(this.worldManager.xMid, 0.01, -2.5);
+    box.scale.set(2, 2, 2);
+    this.scene.add(box);
+    this.player = box;
   }
 
   private playerMovement(dt: number) {

@@ -5,6 +5,7 @@ export enum ModelNames {
   CAR = "car",
   ROAD = "road",
   ROAD_ALT = "road-alt",
+  ROAD_CROSSING = "road-crossing",
   PAVEMENT = "pavement",
   PAVEMENT_ALT = "pavement-alt",
   PAVEMENT_DRAIN = "pavement-drain",
@@ -19,11 +20,17 @@ export class ModelLoader {
 
   private loadingManager = new THREE.LoadingManager();
 
-  get(modelName: string) {
+  get(modelName: string): THREE.Object3D {
     // Clone the model
     const clone = this.models.get(modelName)?.clone();
+
+    // If we couldn't find the model, return an 'error' object
     if (!clone) {
-      return undefined;
+      const geom = new THREE.SphereGeometry();
+      const mat = new THREE.MeshBasicMaterial({ color: "red" });
+      const mesh = new THREE.Mesh(geom, mat);
+
+      return mesh;
     }
 
     // Clear its position
