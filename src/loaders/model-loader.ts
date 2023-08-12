@@ -2,7 +2,14 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
 export enum ModelNames {
-  CAR = "car",
+  CAR_AMBULANCE = "car-ambulance",
+  CAR_HATCH = "car-hatch",
+  CAR_MUSCLE = "car-muscle",
+  CAR_POLICE = "car-police",
+  CAR_SEDAN = "car-sedan",
+  CAR_SUV = "car-suv",
+  CAR_TAXI = "car-taxi",
+  CAR_VAN = "car-van",
   ROAD = "road",
   ROAD_ALT = "road-alt",
   ROAD_CROSSING = "road-crossing",
@@ -17,6 +24,17 @@ export enum ModelNames {
 export class ModelLoader {
   loading = false;
   readonly models = new Map<string, THREE.Object3D>();
+
+  readonly cars = [
+    ModelNames.CAR_AMBULANCE,
+    ModelNames.CAR_HATCH,
+    ModelNames.CAR_MUSCLE,
+    ModelNames.CAR_POLICE,
+    ModelNames.CAR_SEDAN,
+    ModelNames.CAR_SUV,
+    ModelNames.CAR_TAXI,
+    ModelNames.CAR_VAN,
+  ];
 
   private loadingManager = new THREE.LoadingManager();
 

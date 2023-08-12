@@ -121,9 +121,15 @@ export class WorldManager {
   }
 
   private spawnCar(road: Road) {
+    // Get a random car
+    const carName =
+      this.modelLoader.cars[
+        Math.floor(Math.random() * this.modelLoader.cars.length)
+      ];
+    const car = this.modelLoader.get(carName);
+
     // Random direction
     const direction = Math.random() < 0.5 ? -1 : 1;
-    const car = this.modelLoader.get("car");
     car.lookAt(direction, 0, 0);
 
     // Position according to direction
