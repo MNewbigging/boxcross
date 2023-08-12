@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { makeAutoObservable, observable } from "mobx";
 
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
+import { randomRange } from "./utils";
 
 interface Car {
   object: THREE.Object3D;
@@ -132,11 +133,14 @@ export class WorldManager {
       car.position.set(0, 0, road.zLeftLane);
     }
 
+    // Random speed
+    const speed = randomRange(3, 10);
+
     // Add car data
     this.scene.add(car);
     road.cars.push({
       object: car,
-      speed: 15,
+      speed,
       direction,
       toDestroy: false,
     });

@@ -17,3 +17,7 @@ export function addGui(object: THREE.Object3D, name = "") {
 
   gui.add(object.scale, "x").name(name + " scale x");
 }
+
+export function randomRange(min: number, max: number) {
+  return Math.random() * (max - min) + min;
+}

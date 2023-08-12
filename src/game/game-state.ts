@@ -35,7 +35,7 @@ export class GameState {
 
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
-      85,
+      45, // 85 good for debug
       canvas.clientWidth / canvas.clientHeight,
       0.1,
       1000
