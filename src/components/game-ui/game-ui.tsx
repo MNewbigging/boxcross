@@ -13,7 +13,9 @@ export const GameUI: React.FC<AppProps> = observer(({ appState }) => {
   return (
     <div className="game-ui">
       <div className="content">
-        <div className="timer">{appState.gameState?.outOfViewTimer}</div>
+        <div className="road-count">
+          {appState.gameState?.worldManager.roadsCrossed}
+        </div>
       </div>
     </div>
   );

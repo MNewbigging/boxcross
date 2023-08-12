@@ -35,7 +35,7 @@ export class GameState {
 
     // Setup camera
     this.camera = new THREE.PerspectiveCamera(
-      45,
+      85,
       canvas.clientWidth / canvas.clientHeight,
       0.1,
       1000
@@ -65,7 +65,6 @@ export class GameState {
 
     // Start game
     this.setupGame();
-    //this.update();
   }
 
   startGame() {
@@ -169,7 +168,7 @@ export class GameState {
     // Update world
     this.worldManager.update(this.player, dt);
 
-    this.renderer.render();
     //this.controls.update();
+    this.renderer.render();
   };
 }

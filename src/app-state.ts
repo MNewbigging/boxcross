@@ -34,6 +34,5 @@ export class AppState {
 
   @action onLoad = () => {
     this.canStart = true;
-    console.log("can start", this.canStart);
   };
 }

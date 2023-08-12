@@ -100,25 +100,16 @@ export class WorldManager {
   private updateRoad(road: Road, dt: number) {
     // Do any cars need spawning?
     if (road.cars.length < 1) {
-      // Place at left lane start point, face right
-      const car = this.modelLoader.get("car");
-      car.lookAt(1, 0, 0);
-      car.position.set(0, 0, road.zLeftLane);
-      this.scene.add(car);
-      road.cars.push({
-        object: car,
-        speed: 5,
-        direction: 1,
-        toDestroy: false,
-      });
+      this.spawnCar(road);
     }
 
     // Update cars
     road.cars.forEach((car) => {
       // Update car position
-      car.object.position.x += car.speed * dt;
+      car.object.position.x += car.speed * dt * car.direction;
+
       // Check against bounds
-      if (car.object.position.x > this.width) {
+      if (car.object.position.x > this.width || car.object.position.x < 0) {
         this.scene.remove(car.object);
         car.toDestroy = true;
       }
@@ -126,6 +117,29 @@ export class WorldManager {
 
     // Remove any cars marked for destruction
     road.cars = road.cars.filter((car) => !car.toDestroy);
+  }
+
+  private spawnCar(road: Road) {
+    // Random direction
+    const direction = Math.random() < 0.5 ? -1 : 1;
+    const car = this.modelLoader.get("car");
+    car.lookAt(direction, 0, 0);
+
+    // Position according to direction
+    if (direction < 0) {
+      car.position.set(this.width, 0, road.zRightLane);
+    } else {
+      car.position.set(0, 0, road.zLeftLane);
+    }
+
+    // Add car data
+    this.scene.add(car);
+    road.cars.push({
+      object: car,
+      speed: 15,
+      direction,
+      toDestroy: false,
+    });
   }
 
   private roadCheck(playerZ: number) {
