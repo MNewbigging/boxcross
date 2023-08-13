@@ -60,7 +60,7 @@ export class RoadBuilder {
     const roadGroup = new THREE.Group();
 
     // Get the road schema
-    const schema = this.schema();
+    const schema = this.getRoadSchema();
     console.log("schema", schema);
 
     // Build it
@@ -105,8 +105,6 @@ export class RoadBuilder {
       }
 
       // This index contains the target type, so it's invalid along with its neighbours
-      // invalidIndices.push(i - 1, i, i + 1);
-
       for (let r = i - range; r < i + range + 1; r++) {
         invalidIndices.push(r);
       }
@@ -120,7 +118,7 @@ export class RoadBuilder {
     return validIndices;
   }
 
-  private schema() {
+  private getRoadSchema() {
     // Start with all basic columns
     const schema: RoadColumnType[] = Array(COL_COUNT).fill(
       RoadColumnType.BASIC
@@ -166,57 +164,6 @@ export class RoadBuilder {
     return schema;
   }
 
-  private getRoadSchema(): RoadColumnType[] {
-    // Start with all basic columns
-    const schema: RoadColumnType[] = Array(COL_COUNT).fill(
-      RoadColumnType.BASIC
-    );
-
-    // Add drains first
-    const maxDrains = Math.floor(COL_COUNT / 4);
-    const drainCount = randomRange(1, maxDrains);
-    for (let d = 0; d < drainCount; d += 4) {
-      // Will never see drains in the 4th position in each group
-      // Find a random position for the drain
-      // Always appears to the left because we start at 0
-      const pos = randomRange(d, d + 3); // not +4 because this drain at 4 and next at 0 would be direct neighbours
-      schema[d] = RoadColumnType.DRAIN;
-    }
-
-    // Add crossings
-    // I should just pull out non-valid indices from the schema instead of doing a while loop here
-    const crossingCount = randomRange(0, 2);
-    for (let c = 0; c < crossingCount; c++) {
-      let placedCrossing = false;
-
-      while (!placedCrossing) {
-        // Pick a random position
-        const pos = Math.floor(Math.random() * schema.length);
-
-        // Check if left neighbour is a crossing
-        if (pos >= 1 && schema[pos - 1] === RoadColumnType.CROSSING) {
-          // try again
-          continue;
-        }
-
-        // Check if right neighbour is a crossing
-        if (
-          pos < schema.length - 2 &&
-          schema[pos + 1] === RoadColumnType.CROSSING
-        ) {
-          // try again
-          continue;
-        }
-
-        // This is a valid crossing place
-        schema[pos] = RoadColumnType.CROSSING;
-        placedCrossing = true;
-      }
-    }
-
-    return schema;
-  }
-
   private buildCrossingRoadColumn(posX: number): THREE.Object3D[] {
     // Create the road piece
     const crossing = this.modelLoader.get(ModelNames.ROAD_CROSSING);
@@ -241,18 +188,29 @@ export class RoadBuilder {
     road.position.set(posX, 0, -5);
 
     // Pavement pieces equal change to be normal or alt
-    const upperPavement = this.modelLoader.get(
-      Math.random() < 0.5 ? ModelNames.PAVEMENT : ModelNames.PAVEMENT_ALT
-    );
+    const upperPavement = this.modelLoader.get(this.randomPavementType());
     upperPavement.position.set(posX, 0, -15);
 
-    const lowerPavement = this.modelLoader.get(
-      Math.random() < 0.5 ? ModelNames.PAVEMENT : ModelNames.PAVEMENT_ALT
-    );
+    const lowerPavement = this.modelLoader.get(this.randomPavementType());
     lowerPavement.rotateY(Math.PI);
     lowerPavement.position.set(posX + ITEM_WIDTH, 0, -5);
 
     return [road, upperPavement, lowerPavement];
+  }
+
+  private randomPavementType() {
+    const uniqueChance = Math.random();
+
+    // n% of basic pavements should be a unique type
+    if (uniqueChance < 0.15) {
+      // 50/50 between the two unique choices here
+      return Math.random() < 0.5
+        ? ModelNames.PAVEMENT_GRATE
+        : ModelNames.PAVEMENT_PANEL;
+    }
+
+    // otherwise it's a 50/50 for being normal or alt pavement type
+    return Math.random() < 0.5 ? ModelNames.PAVEMENT : ModelNames.PAVEMENT_ALT;
   }
 
   private buildDrainRoadColumn(posX: number) {
