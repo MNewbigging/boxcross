@@ -61,7 +61,6 @@ export class RoadBuilder {
 
     // Get the road schema
     const schema = this.getRoadSchema();
-    console.log("schema", schema);
 
     // Build it
     schema.forEach((columnType: RoadColumnType, index: number) => {

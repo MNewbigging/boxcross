@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { action, makeAutoObservable, observable } from "mobx";
+import { makeAutoObservable, observable } from "mobx";
 
 import {
   COL_COUNT,
@@ -10,11 +10,20 @@ import {
 import { ModelLoader } from "../loaders/model-loader";
 import { randomRange } from "../utils/utils";
 
+interface RoadSpawner {
+  leftLaneSpawnTimer: number; // tracks time since last spawn
+  leftLaneSpawnAt: number; // once timer reaches this value, spawn a new car
+  leftLaneSpeed: number;
+  rightLaneSpawnTimer: number;
+  rightLaneSpawnAt: number;
+  rightLaneSpeed: number;
+  cars: Car[];
+}
+
 interface Car {
   object: THREE.Object3D;
   speed: number;
   direction: number; // 1 for right, -1 for left
-  toDestroy: boolean;
 }
 
 export class WorldManager {
@@ -28,12 +37,10 @@ export class WorldManager {
 
   // Road details
   private roadBuilder: RoadBuilder;
-  private xMaxArea = 40; // Max metres the player can move left to right
+  private xMaxArea = 50; // Max metres the player can move left to right
   private readonly roadBuffer = 2; // How many roads must be ahead/behind player
   private roads: Road[] = [];
-
-  // Cars
-  private cars = new Map<string, Car[]>(); // road id to cars on that road
+  private roadSpawners = new Map<string, RoadSpawner>();
 
   constructor(private modelLoader: ModelLoader, private scene: THREE.Scene) {
     makeAutoObservable(this);
@@ -52,6 +59,7 @@ export class WorldManager {
     const startRoad = this.roadBuilder.buildStartingRoad();
     this.roads.push(startRoad);
     this.scene.add(startRoad.objects);
+    this.setupRoadSpawner(startRoad);
 
     // Then as many lanes as the lane buffer dictates
     for (let x = 0; x < this.roadBuffer; x++) {
@@ -87,24 +95,73 @@ export class WorldManager {
     this.roadCheck(player.position.z);
 
     // Check if more cars need spawning
-    this.carCheck();
+    this.carSpawnCheck(dt);
 
     // Update cars moving along roads
     this.updateCars(dt);
   }
 
-  // Determines if more cars need spawning
-  private carCheck() {
-    // Check against each road
+  private carSpawnCheck(dt: number) {
     this.roads.forEach((road) => {
-      // Get the cars for this road
-      const cars = this.getCarsForRoad(road);
+      // Get the car spawner for this road
+      const spawner = this.roadSpawners.get(road.id);
+      if (!spawner) {
+        return;
+      }
 
-      // Do any cars need spawning?
-      if (cars.length < 1) {
-        this.spawnCar(road);
+      // Increment car spawn timers
+      spawner.leftLaneSpawnTimer += dt;
+      spawner.rightLaneSpawnTimer += dt;
+
+      // Check if a car should be spawned in either lane
+      if (spawner.leftLaneSpawnTimer >= spawner.leftLaneSpawnAt) {
+        this.spawnCar(spawner, road, 1, spawner.leftLaneSpeed);
+        // Reset timer and target spawn timer
+        spawner.leftLaneSpawnTimer = 0;
+        spawner.leftLaneSpawnAt = randomRange(2.2, 5);
+      }
+
+      if (spawner.rightLaneSpawnTimer >= spawner.rightLaneSpawnAt) {
+        this.spawnCar(spawner, road, -1, spawner.rightLaneSpeed);
+        spawner.rightLaneSpawnTimer = 0;
+        spawner.rightLaneSpawnAt = randomRange(2.2, 5);
       }
     });
+  }
+
+  private spawnCar(
+    spawner: RoadSpawner,
+    road: Road,
+    direction: number,
+    speed: number
+  ) {
+    // Get a random car
+    const carName =
+      this.modelLoader.cars[
+        Math.floor(Math.random() * this.modelLoader.cars.length)
+      ];
+    const carObject = this.modelLoader.get(carName);
+
+    // Position according to direction
+    carObject.lookAt(direction, 0, 0);
+    if (direction < 0) {
+      carObject.position.set(this.xMaxWorld, 0, road.zRightLane);
+    } else {
+      carObject.position.set(0, 0, road.zLeftLane);
+    }
+
+    // Create car data
+    const car: Car = {
+      object: carObject,
+      speed,
+      direction,
+    };
+
+    // Add car to the scene
+    this.scene.add(carObject);
+
+    // Add car to the spawner
+    spawner.cars.push(car);
   }
 
   // Drives existing cars
@@ -112,8 +169,13 @@ export class WorldManager {
     // Update per each road
     this.roads.forEach((road) => {
       // Get the cars on this road
-      let cars = this.getCarsForRoad(road);
-      cars.forEach((car) => {
+      const spawner = this.roadSpawners.get(road.id);
+      if (!spawner) {
+        return;
+      }
+
+      const toDestroy: Car[] = [];
+      spawner.cars.forEach((car) => {
         // Drive them along the road
         car.object.position.x += car.speed * dt * car.direction;
 
@@ -122,50 +184,14 @@ export class WorldManager {
           car.object.position.x > this.xMaxWorld ||
           car.object.position.x < 0
         ) {
+          toDestroy.push(car);
           this.scene.remove(car.object);
-          car.toDestroy = true;
         }
       });
 
       // Remove any cars marked for destruction on this road
-      cars = cars.filter((car) => !car.toDestroy);
-      this.cars.set(road.id, cars);
+      spawner.cars = spawner.cars.filter((car) => !toDestroy.includes(car));
     });
-  }
-
-  private spawnCar(road: Road) {
-    // Get a random car
-    const carName =
-      this.modelLoader.cars[
-        Math.floor(Math.random() * this.modelLoader.cars.length)
-      ];
-    const carObject = this.modelLoader.get(carName);
-
-    // Random direction
-    const direction = Math.random() < 0.5 ? -1 : 1;
-    carObject.lookAt(direction, 0, 0);
-
-    // Position according to direction
-    if (direction < 0) {
-      carObject.position.set(this.xMaxWorld, 0, road.zRightLane);
-    } else {
-      carObject.position.set(0, 0, road.zLeftLane);
-    }
-
-    // Random speed
-    const speed = randomRange(3, 10);
-
-    // Create car data
-    const car: Car = {
-      object: carObject,
-      speed,
-      direction,
-      toDestroy: false,
-    };
-
-    // Add car data and to scene
-    this.scene.add(carObject);
-    this.addCarToRoad(car, road);
   }
 
   private roadCheck(playerZ: number) {
@@ -202,6 +228,31 @@ export class WorldManager {
 
     // Add road to the scene
     this.scene.add(nextRoad.objects);
+
+    // Setup the road spawner for this road
+    this.setupRoadSpawner(nextRoad);
+  }
+
+  private setupRoadSpawner(road: Road) {
+    // Initial spawn at values should be low
+    const leftLaneSpawnAt = randomRange(0, 1);
+    const rightLaneSpawnAt = randomRange(0, 1);
+
+    // Speeds are random range, where min and max is according to difficulty scaling
+    const leftLaneSpeed = 5;
+    const rightLaneSpeed = 5;
+
+    const spawner: RoadSpawner = {
+      leftLaneSpawnTimer: 0,
+      leftLaneSpawnAt,
+      leftLaneSpeed,
+      rightLaneSpawnTimer: 0,
+      rightLaneSpawnAt,
+      rightLaneSpeed,
+      cars: [],
+    };
+
+    this.roadSpawners.set(road.id, spawner);
   }
 
   private removeOldestRoad() {
@@ -212,21 +263,17 @@ export class WorldManager {
 
     // Remove objects from the scene
     this.scene.remove(oldestRoad.objects);
-    const cars = this.getCarsForRoad(oldestRoad);
-    cars.forEach((car) => this.scene.remove(car.object));
+    const spawner = this.roadSpawners.get(oldestRoad.id);
+    if (spawner) {
+      spawner.cars.forEach((car) => this.scene.remove(car.object));
+    }
 
     // Remove the car and road data
-    this.cars.delete(oldestRoad.id);
     this.roads.splice(0, 1);
+    this.roadSpawners.delete(oldestRoad.id);
   }
 
   private getCarsForRoad(road: Road) {
-    return this.cars.get(road.id) ?? [];
-  }
-
-  private addCarToRoad(car: Car, road: Road) {
-    const existing = this.getCarsForRoad(road);
-    existing.push(car);
-    this.cars.set(road.id, existing);
+    return this.roadSpawners.get(road.id)?.cars ?? [];
   }
 }
