@@ -4,11 +4,11 @@ import { action, makeAutoObservable, observable } from "mobx";
 import {
   COL_COUNT,
   ITEM_WIDTH,
-  ROAD_DEPTH,
+  Road,
   RoadBuilder,
 } from "../utils/road-builder";
 import { ModelLoader } from "../loaders/model-loader";
-import { randomId, randomRange } from "../utils/utils";
+import { randomRange } from "../utils/utils";
 
 interface Car {
   object: THREE.Object3D;
@@ -17,29 +17,19 @@ interface Car {
   toDestroy: boolean;
 }
 
-interface Road {
-  id: string;
-  index: number; // out of all total roads
-  objects: THREE.Group; // the road and pavement objects
-  zMin: number; // Closest z value
-  zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
-  zLeftLane: number; // Where to spawn cars moving from left-right
-  zRightLane: number; // Where to spawn cars moving from right-left
-}
-
 export class WorldManager {
   // World values
   xMaxWorld = 0;
-  xMin = 0;
-  xMax = 0;
-  xMid = 0;
-  zMin = 0;
+  xMinPlayer = 0;
+  xMaxPlayer = 0;
+  xMidWorld = 0;
+  zMinWorld = 0;
   @observable roadsCrossed = 0;
 
   // Road details
   private roadBuilder: RoadBuilder;
   private xMaxArea = 40; // Max metres the player can move left to right
-  private readonly roadBuffer = 2;
+  private readonly roadBuffer = 2; // How many roads must be ahead/behind player
   private roads: Road[] = [];
 
   // Cars
@@ -52,9 +42,9 @@ export class WorldManager {
 
     // Set world vars
     this.xMaxWorld = ITEM_WIDTH * COL_COUNT;
-    this.xMid = this.xMaxWorld / 2;
-    this.xMin = this.xMid - this.xMaxArea / 2;
-    this.xMax = this.xMid + this.xMaxArea / 2;
+    this.xMidWorld = this.xMaxWorld / 2;
+    this.xMinPlayer = this.xMidWorld - this.xMaxArea / 2;
+    this.xMaxPlayer = this.xMidWorld + this.xMaxArea / 2;
   }
 
   setup() {
@@ -69,20 +59,8 @@ export class WorldManager {
     }
   }
 
-  update(player: THREE.Object3D, dt: number) {
-    // Add/remove roads
-    this.roadCheck(player.position.z);
-
-    // Check if more cars need spawning
-    this.carCheck();
-
-    // Update cars moving along roads
-    this.updateCars(dt);
-  }
-
   playerHitCar(player: THREE.Object3D) {
     const playerZ = player.position.z;
-    // TODO - write getter for current road
     const currentRoad = this.roads.find(
       (road) => playerZ > road.zMax && playerZ < road.zMin
     );
@@ -102,6 +80,17 @@ export class WorldManager {
     }
 
     return false;
+  }
+
+  update(player: THREE.Object3D, dt: number) {
+    // Add/remove roads
+    this.roadCheck(player.position.z);
+
+    // Check if more cars need spawning
+    this.carCheck();
+
+    // Update cars moving along roads
+    this.updateCars(dt);
   }
 
   // Determines if more cars need spawning
@@ -179,7 +168,7 @@ export class WorldManager {
     this.addCarToRoad(car, road);
   }
 
-  @action roadCheck(playerZ: number) {
+  private roadCheck(playerZ: number) {
     // Which road is player on right now
     const roadIdx = this.roads.findIndex(
       (road) => playerZ > road.zMax && playerZ < road.zMin
@@ -218,16 +207,16 @@ export class WorldManager {
   private removeOldestRoad() {
     const oldestRoad = this.roads[0];
 
-    // Update the new world zMin now that a lane is being removed
-    this.zMin = oldestRoad.zMax;
+    // Update the new world zMin now that a road is being removed
+    this.zMinWorld = oldestRoad.zMax;
 
     // Remove objects from the scene
     this.scene.remove(oldestRoad.objects);
-
     const cars = this.getCarsForRoad(oldestRoad);
     cars.forEach((car) => this.scene.remove(car.object));
 
-    // Remove the lane
+    // Remove the car and road data
+    this.cars.delete(oldestRoad.id);
     this.roads.splice(0, 1);
   }
 
@@ -240,6 +229,4 @@ export class WorldManager {
     existing.push(car);
     this.cars.set(road.id, existing);
   }
-
-  //private getCurrentRoad(playerZ: number) {}
 }

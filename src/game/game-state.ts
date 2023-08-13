@@ -39,8 +39,8 @@ export class GameState {
       0.1,
       1000
     );
-    this.camera.position.set(this.worldManager.xMid, 30, 0);
-    this.camera.lookAt(this.worldManager.xMid, 0, -10);
+    this.camera.position.set(this.worldManager.xMidWorld, 30, 0);
+    this.camera.lookAt(this.worldManager.xMidWorld, 0, -10);
 
     // Setup renderer
     this.renderer = new Renderer(canvas, this.camera, this.scene);
@@ -77,7 +77,7 @@ export class GameState {
 
     // Add the player
     const box = this.gameLoader.modelLoader.get("box");
-    box.position.set(this.worldManager.xMid, 0.01, -2.5);
+    box.position.set(this.worldManager.xMidWorld, 0.01, -2.5);
     box.scale.set(2, 2, 2);
     this.scene.add(box);
     this.player = box;
@@ -90,10 +90,10 @@ export class GameState {
 
     if (this.keyboardListener.isKeyPressed("a")) {
       const newPos = this.player.position.x - this.playerMoveSpeed * dt;
-      this.player.position.x = Math.max(newPos, this.worldManager.xMin);
+      this.player.position.x = Math.max(newPos, this.worldManager.xMinPlayer);
     } else if (this.keyboardListener.isKeyPressed("d")) {
       const newPos = this.player.position.x + this.playerMoveSpeed * dt;
-      this.player.position.x = Math.min(newPos, this.worldManager.xMax);
+      this.player.position.x = Math.min(newPos, this.worldManager.xMaxPlayer);
     }
     if (this.keyboardListener.isKeyPressed("w")) {
       // Prevent moving beyond camera view
@@ -102,7 +102,7 @@ export class GameState {
       }
     } else if (this.keyboardListener.isKeyPressed("s")) {
       const newPos = this.player.position.z + this.playerMoveSpeed * dt;
-      this.player.position.z = Math.min(newPos, this.worldManager.zMin);
+      this.player.position.z = Math.min(newPos, this.worldManager.zMinWorld);
     }
   }
 
