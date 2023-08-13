@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
-import { randomId, randomRange } from "./utils";
+import { randomId, randomIndex, randomRange } from "./utils";
 
 export interface Road {
   id: string;
@@ -60,7 +60,8 @@ export class RoadBuilder {
     const roadGroup = new THREE.Group();
 
     // Get the road schema
-    const schema = this.getRoadSchema();
+    const schema = this.schema();
+    console.log("schema", schema);
 
     // Build it
     schema.forEach((columnType: RoadColumnType, index: number) => {
@@ -80,6 +81,89 @@ export class RoadBuilder {
     });
 
     return roadGroup;
+  }
+
+  // Return all indices that do not contain or neighbour the target type
+  private getNonNeighbouringIndices(
+    schema: RoadColumnType[],
+    targetType: RoadColumnType,
+    range = 1
+  ) {
+    // First identify the invalid indices
+    const invalidIndices: number[] = [];
+    const totalIndices: number[] = [];
+
+    for (let i = 0; i < schema.length; i++) {
+      // Track the total indices as we go
+      totalIndices.push(i);
+
+      // Check if current type is the target
+      const currentType = schema[i];
+      if (currentType !== targetType) {
+        // This is not an invalid index
+        continue;
+      }
+
+      // This index contains the target type, so it's invalid along with its neighbours
+      // invalidIndices.push(i - 1, i, i + 1);
+
+      for (let r = i - range; r < i + range + 1; r++) {
+        invalidIndices.push(r);
+      }
+    }
+
+    // Then remove those indices from total indices
+    const validIndices = totalIndices.filter(
+      (index) => !invalidIndices.includes(index)
+    );
+
+    return validIndices;
+  }
+
+  private schema() {
+    // Start with all basic columns
+    const schema: RoadColumnType[] = Array(COL_COUNT).fill(
+      RoadColumnType.BASIC
+    );
+
+    // Add drains first
+    const maxDrains = Math.floor(COL_COUNT / 4);
+    const drainCount = randomRange(1, maxDrains);
+    for (let d = 0; d < drainCount; d++) {
+      // Find valid drain positions
+      const validIndices = this.getNonNeighbouringIndices(
+        schema,
+        RoadColumnType.DRAIN
+      );
+
+      // IF there are no valid positions, just stop
+      if (!validIndices) {
+        break;
+      }
+
+      // Add a drain at a random valid index
+      const randomPosition = validIndices[randomIndex(validIndices.length)];
+      schema[randomPosition] = RoadColumnType.DRAIN;
+    }
+
+    // Add a crossing
+    const maxCrossings = 2; // may want to change based on difficulty later
+    const crossingCount = randomRange(0, maxCrossings);
+    for (let c = 0; c < crossingCount; c++) {
+      const validIndices = this.getNonNeighbouringIndices(
+        schema,
+        RoadColumnType.CROSSING,
+        2
+      );
+      if (!validIndices) {
+        break;
+      }
+
+      const randomPosition = validIndices[randomIndex(validIndices.length)];
+      schema[randomPosition] = RoadColumnType.CROSSING;
+    }
+
+    return schema;
   }
 
   private getRoadSchema(): RoadColumnType[] {

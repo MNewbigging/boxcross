@@ -22,6 +22,10 @@ export function randomRange(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
 
+export function randomIndex(arrayLength: number) {
+  return Math.floor(Math.random() * arrayLength);
+}
+
 export function randomId(length: number = 5) {
   const characters =
     "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV0123456789";
