@@ -133,7 +133,6 @@ export class GameState {
     this.gameOver = true;
 
     // Squash the box
-    //this.controls.target.copy(this.player.position);
     this.camera.lookAt(this.player.position);
     gsap.to(this.player.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
     gsap.to(this.camera, {
@@ -156,7 +155,7 @@ export class GameState {
       this.checkPlayerCameraDistance(dt);
 
       // Update camera
-      //this.camera.position.z -= this.cameraMoveSpeed * dt;
+      this.camera.position.z -= this.cameraMoveSpeed * dt;
 
       // Collision check
       this.playerCollisionCheck();

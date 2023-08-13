@@ -41,6 +41,7 @@ export class WorldManager {
   private readonly roadBuffer = 2; // How many roads must be ahead/behind player
   private roads: Road[] = [];
   private roadSpawners = new Map<string, RoadSpawner>();
+  private readonly carStartSpeed = 3;
 
   constructor(private modelLoader: ModelLoader, private scene: THREE.Scene) {
     makeAutoObservable(this);
@@ -118,13 +119,13 @@ export class WorldManager {
         this.spawnCar(spawner, road, 1, spawner.leftLaneSpeed);
         // Reset timer and target spawn timer
         spawner.leftLaneSpawnTimer = 0;
-        spawner.leftLaneSpawnAt = randomRange(2.2, 5);
+        this.randomSpawnerValues(spawner);
       }
 
       if (spawner.rightLaneSpawnTimer >= spawner.rightLaneSpawnAt) {
         this.spawnCar(spawner, road, -1, spawner.rightLaneSpeed);
         spawner.rightLaneSpawnTimer = 0;
-        spawner.rightLaneSpawnAt = randomRange(2.2, 5);
+        this.randomSpawnerValues(spawner);
       }
     });
   }
@@ -238,21 +239,38 @@ export class WorldManager {
     const leftLaneSpawnAt = randomRange(0, 1);
     const rightLaneSpawnAt = randomRange(0, 1);
 
-    // Speeds are random range, where min and max is according to difficulty scaling
-    const leftLaneSpeed = 5;
-    const rightLaneSpeed = 5;
+    // Speed - higher values at higher difficulty
+    const minSpeed = this.carStartSpeed + this.roadsCrossed / 2;
+    const maxSpeed = minSpeed + this.roadsCrossed;
 
     const spawner: RoadSpawner = {
       leftLaneSpawnTimer: 0,
       leftLaneSpawnAt,
-      leftLaneSpeed,
+      leftLaneSpeed: randomRange(minSpeed, maxSpeed),
       rightLaneSpawnTimer: 0,
       rightLaneSpawnAt,
-      rightLaneSpeed,
+      rightLaneSpeed: randomRange(minSpeed, maxSpeed),
       cars: [],
     };
 
     this.roadSpawners.set(road.id, spawner);
+  }
+
+  private randomSpawnerValues(spawner: RoadSpawner) {
+    // Spawn at - absolute minimum is time taken to allow for previous car + gap
+    const buffer = 12; // 12 metres for longest car and a slight gap
+
+    const leftMinSpawnAt = buffer / spawner.leftLaneSpeed;
+    const rightMinSpawnAt = buffer / spawner.rightLaneSpeed;
+
+    // Spawn at - maximum should get closer to min at higher difficulty
+    const gap = randomRange(2, Math.max(2.2, 10 - this.roadsCrossed)); // Math.max(2, 10 - this.roadsCrossed);
+
+    const leftMaxSpawnAt = leftMinSpawnAt + gap;
+    const rightMaxSpawnAt = rightMinSpawnAt + gap;
+
+    spawner.leftLaneSpawnAt = randomRange(leftMinSpawnAt, leftMaxSpawnAt);
+    spawner.rightLaneSpawnAt = randomRange(rightMinSpawnAt, rightMaxSpawnAt);
   }
 
   private removeOldestRoad() {
