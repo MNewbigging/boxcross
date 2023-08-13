@@ -21,3 +21,16 @@ export function addGui(object: THREE.Object3D, name = "") {
 export function randomRange(min: number, max: number) {
   return Math.random() * (max - min) + min;
 }
+
+export function randomId(length: number = 5) {
+  const characters =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUV0123456789";
+
+  let id = "";
+  for (let i = 0; i < length; i++) {
+    const rnd = Math.floor(Math.random() * characters.length);
+    id += characters.charAt(rnd);
+  }
+
+  return id;
+}

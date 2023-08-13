@@ -1,12 +1,12 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { action, makeAutoObservable, observable } from "mobx";
+import { action, autorun, makeAutoObservable, observable } from "mobx";
 import { gsap } from "gsap";
 
 import { GameLoader } from "../loaders/game-loader";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { Renderer } from "./renderer";
-import { WorldManager } from "../utils/world-manager";
+import { WorldManager } from "./world-manager";
 
 export class GameState {
   private keyboardListener = new KeyboardListener();
@@ -17,12 +17,11 @@ export class GameState {
 
   private scene = new THREE.Scene();
   private camera: THREE.PerspectiveCamera;
-  private cameraMoveSpeed = 3;
+  private cameraMoveSpeed = 5;
   private playerCameraDistance = 0;
   @observable outOfViewTimer = 0;
   private outOfViewLimit = 3;
   private renderer: Renderer;
-  //private controls: OrbitControls;
   private clock = new THREE.Clock();
 
   constructor(
@@ -48,11 +47,6 @@ export class GameState {
 
     this.scene.background = new THREE.Color("#1680AF");
 
-    // Camera controls
-    // this.controls = new OrbitControls(this.camera, canvas);
-    // this.controls.enableDamping = true;
-    // this.controls.target.set(this.worldManager.xMid, 0, -10);
-
     // Lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     this.scene.add(ambientLight);
@@ -63,8 +57,14 @@ export class GameState {
     const axesHelper = new THREE.AxesHelper(50);
     this.scene.add(axesHelper);
 
-    // Start game
+    // Setup game
     this.setupGame();
+
+    // Listen for crossed roads
+    // autorun(() => {
+    //   // Update speed values for camera, cars and player
+    //   this.cameraMoveSpeed = 1 + this.worldManager.roadsCrossed / 3;
+    // });
   }
 
   startGame() {
