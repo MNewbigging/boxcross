@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { makeAutoObservable, observable } from "mobx";
+import { computed, makeAutoObservable, observable } from "mobx";
 
 import {
   COL_COUNT,
@@ -7,6 +7,7 @@ import {
   Road,
   RoadBuilder,
 } from "../utils/road-builder";
+import { ManholeManager } from "./manhole-manager";
 import { ModelLoader } from "../loaders/model-loader";
 import { randomRange } from "../utils/utils";
 
@@ -42,11 +43,13 @@ export class WorldManager {
   private roads: Road[] = [];
   private roadSpawners = new Map<string, RoadSpawner>();
   private readonly carStartSpeed = 3;
+  private manholeManager: ManholeManager;
 
   constructor(private modelLoader: ModelLoader, private scene: THREE.Scene) {
     makeAutoObservable(this);
 
     this.roadBuilder = new RoadBuilder(modelLoader);
+    this.manholeManager = new ManholeManager(modelLoader, scene);
 
     // Set world vars
     this.xMaxWorld = ITEM_WIDTH * COL_COUNT;
@@ -55,7 +58,7 @@ export class WorldManager {
     this.xMaxPlayer = this.xMidWorld + this.xMaxArea / 2;
   }
 
-  getCurrentRoad(playerZ: number): Road | undefined {
+  @computed getCurrentRoad(playerZ: number): Road | undefined {
     return this.roads.find(
       (road) => playerZ > road.zMax && playerZ < road.zMin
     );
@@ -67,6 +70,8 @@ export class WorldManager {
     this.roads.push(startRoad);
     this.scene.add(startRoad.objects);
     this.setupRoadSpawner(startRoad);
+
+    this.manholeManager.spawnManholesForRoad(startRoad);
 
     // Then as many lanes as the lane buffer dictates
     for (let x = 0; x < this.roadBuffer; x++) {
@@ -94,7 +99,7 @@ export class WorldManager {
     return false;
   }
 
-  update(player: THREE.Object3D, dt: number) {
+  update(dt: number, player: THREE.Object3D) {
     // Add/remove roads
     this.roadCheck(player.position.z);
 
@@ -103,6 +108,9 @@ export class WorldManager {
 
     // Update cars moving along roads
     this.updateCars(dt);
+
+    // Update manholes
+    this.manholeManager.update(dt, player);
   }
 
   private carSpawnCheck(dt: number) {

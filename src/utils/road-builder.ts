@@ -11,7 +11,6 @@ export interface Road {
   zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
   zLeftLane: number; // Where to spawn cars moving from left-right
   zRightLane: number; // Where to spawn cars moving from right-left
-  manholes?: THREE.Object3D[];
 }
 
 enum RoadColumnType {
@@ -36,17 +35,6 @@ export class RoadBuilder {
   buildStartingRoad() {
     // Custom road will go here eventually
     const road = this.buildRoad(0, 0);
-
-    // Testing manhole covers
-    const manhole = this.modelLoader.get(ModelNames.MANHOLE_COVER);
-    manhole.position.set(30, 0.02, -2.5);
-    road.objects.add(manhole);
-
-    road.manholes = [manhole];
-
-    const patch = this.modelLoader.get(ModelNames.MANHOLE_PATCH);
-    patch.position.set(30, 0.02, -2.5);
-    road.objects.add(patch);
 
     return road;
   }

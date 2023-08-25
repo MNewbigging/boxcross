@@ -13,7 +13,8 @@ export class GameState {
   worldManager: WorldManager;
   private player!: THREE.Object3D;
   private playerMoveSpeed = 15;
-  private inManhole = false;
+  private playerCanMove = true;
+  private inManhole?: THREE.Object3D;
   @observable gameOver = false;
 
   private scene = new THREE.Scene();
@@ -82,7 +83,21 @@ export class GameState {
   }
 
   private playerMovement(dt: number) {
-    if (!this.player || this.inManhole) {
+    if (!this.player) {
+      return;
+    }
+
+    // Player wants to exit manhole
+    if (
+      this.inManhole &&
+      this.keyboardListener.anyKeysPressed(["w", "a", "s", "d"])
+    ) {
+      this.exitManhole(this.inManhole);
+      return;
+    }
+
+    // Standard movement
+    if (!this.playerCanMove) {
       return;
     }
 
@@ -187,17 +202,39 @@ export class GameState {
       z: manhole.position.z,
       duration: 0.2,
     });
-    playerTimeline.to(
-      this.player.position,
-      {
-        y: -1,
-        duration: 0.4,
-      },
-      ">"
-    );
+    playerTimeline.to(this.player.position, {
+      y: -1.2,
+      duration: 0.4,
+    });
 
     // Player is now in the manhole
-    this.inManhole = true;
+    this.inManhole = manhole;
+    this.playerCanMove = false;
+  }
+
+  private exitManhole(manhole: THREE.Object3D) {
+    // Start the manhole cover anim
+    const coverStartHeight = manhole.position.y;
+    const coverTimeline = gsap.timeline();
+    coverTimeline.to(manhole.position, {
+      y: coverStartHeight + 1,
+      duration: 0.5,
+    });
+    coverTimeline.to(manhole.position, {
+      y: coverStartHeight,
+      duration: 0.5,
+    });
+
+    // Player reveal anim
+    gsap.to(this.player.position, {
+      y: 0.01,
+      duration: 0.4,
+      onComplete: () => {
+        this.playerCanMove = true;
+      },
+    });
+
+    this.inManhole = undefined;
   }
 
   private update = () => {
@@ -218,7 +255,7 @@ export class GameState {
     }
 
     // Update world
-    this.worldManager.update(this.player, dt);
+    this.worldManager.update(dt, this.player);
 
     //this.controls.update();
     this.renderer.render();
