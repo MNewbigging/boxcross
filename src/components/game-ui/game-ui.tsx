@@ -14,7 +14,7 @@ export const GameUI: React.FC<AppProps> = observer(({ appState }) => {
     <div className="game-ui">
       <div className="content">
         <div className="road-count">
-          {appState.gameState?.worldManager.roadsCrossed}
+          {appState.gameState?.gameStore.roadsCrossed}
         </div>
       </div>
     </div>

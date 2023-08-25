@@ -1,5 +1,6 @@
 import { action, makeAutoObservable, observable } from "mobx";
 
+import { Game } from "./game-v2/game";
 import { GameLoader } from "./loaders/game-loader";
 import { GameState } from "./game/game-state";
 
@@ -8,7 +9,7 @@ export class AppState {
   @observable gameStarted = false;
 
   readonly gameLoader = new GameLoader();
-  gameState?: GameState;
+  gameState?: Game;
 
   constructor() {
     makeAutoObservable(this);
@@ -23,7 +24,11 @@ export class AppState {
       console.error("could not find game canvas");
       return;
     }
-    this.gameState = new GameState(canvas, this.gameLoader);
+    // this.gameState = new GameState(canvas, this.gameLoader);
+    // this.gameStarted = true;
+    // this.gameState.startGame();
+
+    this.gameState = new Game(canvas, this.gameLoader);
     this.gameStarted = true;
     this.gameState.startGame();
   };

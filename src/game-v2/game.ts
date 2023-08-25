@@ -59,6 +59,7 @@ export class Game {
     camera.lookAt(world.xMid, 0, -10);
 
     // Build the starting roads
+    this.roadManager.buildStartingRoads();
 
     // Place player
     player.object.position.set(world.xMid, 0.01, -2.5);
