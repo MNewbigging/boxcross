@@ -16,6 +16,7 @@ export class GameStore {
   player: Player;
   world: World;
   roads: Road[] = [];
+
   @observable roadsCrossed = 0;
 
   constructor(initData: GameInitData) {

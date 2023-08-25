@@ -1,10 +1,15 @@
+import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { RoadBuilder } from "../utils/road-builder";
 
 export class RoadManager {
   private readonly roadBuffer = 2; // How many roads must be ahead/behind player
 
-  constructor(private gameStore: GameStore, private roadBuilder: RoadBuilder) {}
+  constructor(
+    private gameStore: GameStore,
+    private roadBuilder: RoadBuilder,
+    private events: EventListener
+  ) {}
 
   getCurrentRoad() {
     const { roads, player } = this.gameStore;
@@ -27,6 +32,7 @@ export class RoadManager {
     const startingRoad = this.roadBuilder.buildStartingRoad();
     roads.push(startingRoad);
     scene.add(startingRoad.objects);
+    this.events.fire("road-created", startingRoad);
 
     // Then as many lanes as lane buffer dictates
     for (let x = 0; x < this.roadBuffer; x++) {
@@ -74,6 +80,9 @@ export class RoadManager {
 
     // Add road to the scene
     scene.add(nextRoad.objects);
+
+    // Notify
+    this.events.fire("road-created", nextRoad);
   }
 
   private removeOldestRoad() {
@@ -90,5 +99,8 @@ export class RoadManager {
 
     // Remove the road data
     roads.splice(0, 1);
+
+    // Notify
+    this.events.fire("road-removed", oldestRoad);
   }
 }

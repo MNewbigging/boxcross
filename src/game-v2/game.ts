@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+import { CarManager } from "./car-manager";
+import { EventListener } from "../listeners/event-listener";
 import { GameLoader } from "../loaders/game-loader";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
@@ -11,12 +13,16 @@ import { createInitData } from "./model/game-init-data";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
+
   private keyboardListener = new KeyboardListener();
+  private eventListener = new EventListener();
+
   private renderer: Renderer;
   private clock = new THREE.Clock();
 
   // Managers
   private roadManager: RoadManager;
+  private carManager: CarManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -35,8 +41,10 @@ export class Game {
     // Managers
     this.roadManager = new RoadManager(
       this.gameStore,
-      new RoadBuilder(gameLoader.modelLoader)
+      new RoadBuilder(gameLoader.modelLoader),
+      this.eventListener
     );
+    this.carManager = new CarManager(this.gameStore, this.eventListener);
 
     // Perform initial game setup
     this.setupGame();
@@ -70,6 +78,10 @@ export class Game {
     requestAnimationFrame(this.update);
 
     const dt = this.clock.getDelta();
+
+    // Update managers
+    this.roadManager.update();
+    this.carManager.update(dt);
 
     this.renderer.render();
   };
