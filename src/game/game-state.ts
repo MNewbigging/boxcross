@@ -13,6 +13,7 @@ export class GameState {
   worldManager: WorldManager;
   private player!: THREE.Object3D;
   private playerMoveSpeed = 15;
+  private inManhole = false;
   @observable gameOver = false;
 
   private scene = new THREE.Scene();
@@ -78,12 +79,10 @@ export class GameState {
     box.scale.set(2, 2, 2);
     this.scene.add(box);
     this.player = box;
-
-    console.log("player pos", this.player.position);
   }
 
   private playerMovement(dt: number) {
-    if (!this.player) {
+    if (!this.player || this.inManhole) {
       return;
     }
 
@@ -110,6 +109,28 @@ export class GameState {
     const playerHitCar = this.worldManager.playerHitCar(this.player);
     if (playerHitCar) {
       this.endGame();
+    }
+
+    // Check against manhole covers
+    if (!this.inManhole) {
+      const currentRoad = this.worldManager.getCurrentRoad(
+        this.player.position.z
+      );
+      if (currentRoad?.manholes?.length) {
+        // Is the player over the cover?
+        for (const manhole of currentRoad.manholes) {
+          // When player is within a certain small distance, considered over the cover
+          if (manhole.position.clone().sub(this.player.position).length() < 1) {
+            console.log("over");
+
+            // Can start the animation
+            this.enterManhole(manhole);
+
+            // Cannot also be over any other manholes if over this one
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -144,6 +165,39 @@ export class GameState {
         this.camera.updateProjectionMatrix();
       },
     });
+  }
+
+  private enterManhole(manhole: THREE.Object3D) {
+    // Start the manhole cover flip animation
+    const coverStartHeight = manhole.position.y;
+    const coverTimeline = gsap.timeline();
+    coverTimeline.to(manhole.position, {
+      y: coverStartHeight + 1,
+      duration: 0.5,
+    });
+    coverTimeline.to(manhole.position, { y: coverStartHeight, duration: 0.5 });
+
+    // Start player sink animation:
+    // Player should be drawn to center of manhole first
+    // Then sink into it as the cover moves aside
+
+    const playerTimeline = gsap.timeline();
+    playerTimeline.to(this.player.position, {
+      x: manhole.position.x,
+      z: manhole.position.z,
+      duration: 0.2,
+    });
+    playerTimeline.to(
+      this.player.position,
+      {
+        y: -1,
+        duration: 0.4,
+      },
+      ">"
+    );
+
+    // Player is now in the manhole
+    this.inManhole = true;
   }
 
   private update = () => {

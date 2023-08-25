@@ -55,6 +55,12 @@ export class WorldManager {
     this.xMaxPlayer = this.xMidWorld + this.xMaxArea / 2;
   }
 
+  getCurrentRoad(playerZ: number): Road | undefined {
+    return this.roads.find(
+      (road) => playerZ > road.zMax && playerZ < road.zMin
+    );
+  }
+
   setup() {
     // Get starting road
     const startRoad = this.roadBuilder.buildStartingRoad();
@@ -69,10 +75,7 @@ export class WorldManager {
   }
 
   playerHitCar(player: THREE.Object3D) {
-    const playerZ = player.position.z;
-    const currentRoad = this.roads.find(
-      (road) => playerZ > road.zMax && playerZ < road.zMin
-    );
+    const currentRoad = this.getCurrentRoad(player.position.z);
     if (!currentRoad) {
       return;
     }
@@ -200,6 +203,9 @@ export class WorldManager {
     const roadIdx = this.roads.findIndex(
       (road) => playerZ > road.zMax && playerZ < road.zMin
     );
+    if (roadIdx < 0) {
+      return;
+    }
 
     // If remaining roads ahead count is less than road buffer, spawn a lane
     const roadsAhead = this.roads.length - (roadIdx + 1);
