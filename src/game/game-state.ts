@@ -78,6 +78,8 @@ export class GameState {
     box.scale.set(2, 2, 2);
     this.scene.add(box);
     this.player = box;
+
+    console.log("player pos", this.player.position);
   }
 
   private playerMovement(dt: number) {
@@ -155,7 +157,7 @@ export class GameState {
       this.checkPlayerCameraDistance(dt);
 
       // Update camera
-      this.camera.position.z -= this.cameraMoveSpeed * dt;
+      //this.camera.position.z -= this.cameraMoveSpeed * dt;
 
       // Collision check
       this.playerCollisionCheck();

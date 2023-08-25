@@ -19,6 +19,8 @@ export enum ModelNames {
   PAVEMENT_PANEL = "pavement-panel",
   PAVEMENT_GRATE = "pavement-grate",
   PAVEMENT_DIP = "pavement-dip",
+  MANHOLE_COVER = "manhole-cover",
+  MANHOLE_PATCH = "manhole-patch",
 }
 
 export class ModelLoader {

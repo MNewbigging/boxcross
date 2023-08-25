@@ -34,7 +34,18 @@ export class RoadBuilder {
 
   buildStartingRoad() {
     // Custom road will go here eventually
-    return this.buildRoad(0, 0);
+    const road = this.buildRoad(0, 0);
+
+    // Testing manhole covers
+    const manhole = this.modelLoader.get(ModelNames.MANHOLE_COVER);
+    manhole.position.set((ITEM_WIDTH * COL_COUNT) / 2, 0.02, -7.5);
+    road.objects.add(manhole);
+
+    const patch = this.modelLoader.get(ModelNames.MANHOLE_PATCH);
+    patch.position.set((ITEM_WIDTH * COL_COUNT) / 2, 0.02, -7.5);
+    road.objects.add(patch);
+
+    return road;
   }
 
   buildRoad(zPos: number, index: number) {
