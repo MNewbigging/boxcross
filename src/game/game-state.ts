@@ -127,26 +127,26 @@ export class GameState {
     }
 
     // Check against manhole covers
-    if (!this.inManhole) {
-      const currentRoad = this.worldManager.getCurrentRoad(
-        this.player.position.z
-      );
-      if (currentRoad?.manholes?.length) {
-        // Is the player over the cover?
-        for (const manhole of currentRoad.manholes) {
-          // When player is within a certain small distance, considered over the cover
-          if (manhole.position.clone().sub(this.player.position).length() < 1) {
-            console.log("over");
+    // if (!this.inManhole) {
+    //   const currentRoad = this.worldManager.getCurrentRoad(
+    //     this.player.position.z
+    //   );
+    //   if (currentRoad?.manholes?.length) {
+    //     // Is the player over the cover?
+    //     for (const manhole of currentRoad.manholes) {
+    //       // When player is within a certain small distance, considered over the cover
+    //       if (manhole.position.clone().sub(this.player.position).length() < 1) {
+    //         console.log("over");
 
-            // Can start the animation
-            this.enterManhole(manhole);
+    //         // Can start the animation
+    //         this.enterManhole(manhole);
 
-            // Cannot also be over any other manholes if over this one
-            break;
-          }
-        }
-      }
-    }
+    //         // Cannot also be over any other manholes if over this one
+    //         break;
+    //       }
+    //     }
+    //   }
+    // }
   }
 
   @action checkPlayerCameraDistance(dt: number) {
