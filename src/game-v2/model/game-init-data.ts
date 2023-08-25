@@ -1,8 +1,8 @@
 import * as THREE from "three";
 
-import { COL_COUNT, ITEM_WIDTH } from "../utils/road-builder";
-import { GameLoader } from "../loaders/game-loader";
-import { ModelNames } from "../loaders/model-loader";
+import { COL_COUNT, ITEM_WIDTH } from "../../utils/road-builder";
+import { GameLoader } from "../../loaders/game-loader";
+import { ModelNames } from "../../loaders/model-loader";
 import { Player } from "./player";
 import { World } from "./world";
 
