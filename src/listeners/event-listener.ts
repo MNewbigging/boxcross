@@ -3,6 +3,8 @@ import { Road } from "../game-v2/model/road";
 export interface EventMap {
   "road-created": Road;
   "road-removed": Road;
+  "out-of-view": null;
+  "player-hit-car": null;
 }
 
 type EventCallback = (event: any) => void;

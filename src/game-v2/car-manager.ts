@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
@@ -37,7 +39,7 @@ export class CarManager {
   update(dt: number) {
     const { roads } = this.gameStore;
 
-    // For every road
+    // Update cars by road
     roads.forEach((road) => {
       // Get the spawner for this road
       const spawner = this.roadSpawners.get(road.id);
@@ -51,25 +53,9 @@ export class CarManager {
       // Drive cars along roads
       this.driveCars(dt, spawner);
     });
-  }
 
-  private driveCars(dt: number, spawner: RoadSpawner) {
-    const { world, scene } = this.gameStore;
-
-    const toDestroy: Car[] = [];
-    spawner.cars.forEach((car) => {
-      // Drive them along the road
-      car.object.position.x += car.speed * dt * car.direction;
-
-      // Check against bounds
-      if (car.object.position.x > world.xMax || car.object.position.x < 0) {
-        toDestroy.push(car);
-        scene.remove(car.object);
-      }
-    });
-
-    // Remove any cars marked for destruction on this road
-    spawner.cars = spawner.cars.filter((car) => !toDestroy.includes(car));
+    // Check for car collisions against player on current road
+    this.checkPlayerCollision();
   }
 
   private carSpawnCheck(dt: number, road: Road, spawner: RoadSpawner) {
@@ -126,6 +112,46 @@ export class CarManager {
 
     // Add car to the spawner
     spawner.cars.push(car);
+  }
+
+  private driveCars(dt: number, spawner: RoadSpawner) {
+    const { world, scene } = this.gameStore;
+
+    const toDestroy: Car[] = [];
+    spawner.cars.forEach((car) => {
+      // Drive them along the road
+      car.object.position.x += car.speed * dt * car.direction;
+
+      // Check against bounds
+      if (car.object.position.x > world.xMax || car.object.position.x < 0) {
+        toDestroy.push(car);
+        scene.remove(car.object);
+      }
+    });
+
+    // Remove any cars marked for destruction on this road
+    spawner.cars = spawner.cars.filter((car) => !toDestroy.includes(car));
+  }
+
+  private checkPlayerCollision() {
+    const { player } = this.gameStore;
+    const currentRoad = this.gameStore.getCurrentRoad();
+    if (!currentRoad) {
+      return;
+    }
+
+    const cars = this.roadSpawners.get(currentRoad.id)?.cars ?? [];
+    for (const car of cars) {
+      const carBox = new THREE.Box3().setFromObject(car.object);
+      const playerBox = new THREE.Box3().setFromObject(player.object);
+
+      if (carBox.intersectsBox(playerBox)) {
+        // Player has hit the car, notify
+        this.events.fire("player-hit-car", null);
+
+        return;
+      }
+    }
   }
 
   private onRoadCreated = (road: Road) => {

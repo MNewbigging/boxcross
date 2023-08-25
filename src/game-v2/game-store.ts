@@ -30,4 +30,10 @@ export class GameStore {
     this.player = initData.player;
     this.world = initData.world;
   }
+
+  getCurrentRoad() {
+    const pz = this.player.object.position.z;
+
+    return this.roads.find((road) => pz > road.zMax && pz < road.zMin);
+  }
 }

@@ -5,6 +5,7 @@ import { EventListener } from "../listeners/event-listener";
 import { GameLoader } from "../loaders/game-loader";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
+import { PlayerManager } from "./player-manager";
 import { Renderer } from "../game/renderer";
 import { RoadBuilder } from "../utils/road-builder";
 import { RoadManager } from "./road-manager";
@@ -23,6 +24,7 @@ export class Game {
   // Managers
   private roadManager: RoadManager;
   private carManager: CarManager;
+  private playerManager: PlayerManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -45,6 +47,11 @@ export class Game {
       this.eventListener
     );
     this.carManager = new CarManager(this.gameStore, this.eventListener);
+    this.playerManager = new PlayerManager(
+      this.gameStore,
+      this.keyboardListener,
+      this.eventListener
+    );
 
     // Perform initial game setup
     this.setupGame();
@@ -82,6 +89,7 @@ export class Game {
     // Update managers
     this.roadManager.update();
     this.carManager.update(dt);
+    this.playerManager.update(dt);
 
     this.renderer.render();
   };

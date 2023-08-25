@@ -11,13 +11,6 @@ export class RoadManager {
     private events: EventListener
   ) {}
 
-  getCurrentRoad() {
-    const { roads, player } = this.gameStore;
-    const pz = player.object.position.z;
-
-    return roads.find((road) => pz > road.zMax && pz < road.zMin);
-  }
-
   getCurrentRoadIndex() {
     const { roads, player } = this.gameStore;
     const pz = player.object.position.z;
