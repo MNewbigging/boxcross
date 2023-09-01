@@ -1,4 +1,6 @@
 import * as THREE from "three";
+import { action, makeAutoObservable, observable } from "mobx";
+import { gsap } from "gsap";
 
 import { CarManager } from "./car-manager";
 import { EventListener } from "../listeners/event-listener";
@@ -14,6 +16,7 @@ import { createInitData } from "./model/game-init-data";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
+  @observable gameOver = false;
 
   private keyboardListener = new KeyboardListener();
   private eventListener = new EventListener();
@@ -30,6 +33,8 @@ export class Game {
     private canvas: HTMLCanvasElement,
     private gameLoader: GameLoader
   ) {
+    makeAutoObservable(this);
+
     // Create game store, passing initial game properties
     this.gameStore = new GameStore(createInitData(canvas, gameLoader));
 
@@ -79,7 +84,27 @@ export class Game {
     // Place player
     player.object.position.set(world.xMid, 0.01, -2.5);
     scene.add(player.object);
+
+    // Listeners
+    this.eventListener.on("player-hit-car", this.onPlayerHitCar);
   }
+
+  @action onPlayerHitCar = () => {
+    const { camera, player } = this.gameStore;
+
+    this.gameOver = true;
+
+    // Squash the box
+    camera.lookAt(player.object.position);
+    gsap.to(player.object.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
+    gsap.to(camera, {
+      duration: 2,
+      zoom: 2,
+      onUpdate: () => {
+        camera.updateProjectionMatrix();
+      },
+    });
+  };
 
   private update = () => {
     requestAnimationFrame(this.update);
@@ -89,7 +114,10 @@ export class Game {
     // Update managers
     this.roadManager.update();
     this.carManager.update(dt);
-    this.playerManager.update(dt);
+
+    if (!this.gameOver) {
+      this.playerManager.update(dt);
+    }
 
     this.renderer.render();
   };
