@@ -6,6 +6,7 @@ import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { ModelNames } from "../loaders/model-loader";
 import { Road } from "../utils/road-builder";
+import { randomRange, randomRangeInt } from "../utils/utils";
 
 export class ManholeManager {
   private inManhole?: THREE.Object3D;
@@ -13,6 +14,8 @@ export class ManholeManager {
   private manholes = new Map<string, THREE.Object3D[]>(); // road it to manhole objects array
   private readonly minEnterDistance = 1;
   private readonly manholePosY = 0.02;
+  private minManholeCount = 0;
+  private maxManholeCount = 2;
 
   constructor(
     private gameStore: GameStore,
@@ -20,32 +23,61 @@ export class ManholeManager {
     private keyboardListener: KeyboardListener
   ) {
     // Listeners
-    events.on("road-created", this.onRoadCreated);
-    events.on("road-removed", this.onRoadRemoved);
+    this.events.on("road-created", this.onRoadCreated);
+    this.events.on("road-removed", this.onRoadRemoved);
+  }
+
+  private getRandomManholePosition(zOffset: number) {
+    const { world } = this.gameStore;
+
+    return new THREE.Vector3(
+      randomRange(world.xMinPlayer + 2.5, world.xMaxPlayer - 2.5), // well within player area to allow exiting towards edge
+      this.manholePosY,
+      zOffset + randomRange(-5.8, -14.2) // keeps it on the road, not gutter/pavements
+    );
+  }
+
+  private overlapsOthers(pos: THREE.Vector3, others: THREE.Vector3[]) {
+    return others.some((otherPos) => otherPos.distanceTo(pos) < 2);
   }
 
   private onRoadCreated = (road: Road) => {
-    const { loader, scene } = this.gameStore;
+    const { loader, scene, world } = this.gameStore;
     const { modelLoader } = loader;
 
-    // Decide how many manholes to create, then create them
+    // Decide how many manholes to create
+    const toCreate = randomRangeInt(this.minManholeCount, this.maxManholeCount);
 
-    // For now, just test one manhole in the same position on each road
-    const manholePosition = road.objects.position
-      .clone()
-      .add(new THREE.Vector3(30, this.manholePosY, -7.5));
+    // Randomly generate manhole positions, ensuring no overlaps
+    const roadPosition = road.objects.position;
+    const manholePositions: THREE.Vector3[] = [];
+    for (let i = 0; i < toCreate; i++) {
+      let position = this.getRandomManholePosition(roadPosition.z);
 
-    // Add manhole models to road objects so they're added/removed to/from scene together
-    const manhole = modelLoader.get(ModelNames.MANHOLE_COVER);
-    manhole.position.copy(manholePosition);
-    scene.add(manhole);
+      // No overlap
+      while (this.overlapsOthers(position, manholePositions)) {
+        position = this.getRandomManholePosition(roadPosition.z);
+      }
 
-    const patch = modelLoader.get(ModelNames.MANHOLE_PATCH);
-    patch.position.copy(manholePosition);
-    scene.add(patch);
+      manholePositions.push(position);
+    }
+
+    const manholeCovers: THREE.Object3D[] = [];
+    manholePositions.forEach((manholePosition) => {
+      // Add manhole models to road objects so they're added/removed to/from scene together
+      const manhole = modelLoader.get(ModelNames.MANHOLE_COVER);
+      manhole.position.copy(manholePosition);
+      scene.add(manhole);
+
+      const patch = modelLoader.get(ModelNames.MANHOLE_PATCH);
+      patch.position.copy(manholePosition);
+      scene.add(patch);
+
+      manholeCovers.push(manhole);
+    });
 
     // Keep track of all manhole covers added so we can animate them
-    this.manholes.set(road.id, [manhole]);
+    this.manholes.set(road.id, manholeCovers);
   };
 
   private onRoadRemoved = (road: Road) => {
