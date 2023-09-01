@@ -64,7 +64,8 @@ export class Game {
     this.cameraManager = new CameraManager(this.gameStore, this.eventListener);
     this.manholeManager = new ManholeManager(
       this.gameStore,
-      this.eventListener
+      this.eventListener,
+      this.keyboardListener
     );
 
     // Perform initial game setup
@@ -132,7 +133,7 @@ export class Game {
     if (!this.gameOver) {
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
-      this.manholeManager.update(dt);
+      this.manholeManager.update();
     }
 
     this.renderer.render();
