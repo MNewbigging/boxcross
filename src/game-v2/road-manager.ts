@@ -12,10 +12,10 @@ export class RoadManager {
   ) {}
 
   getCurrentRoadIndex() {
-    const { roads, player } = this.gameStore;
-    const pz = player.object.position.z;
+    const { roads, camera } = this.gameStore;
+    const posZ = camera.position.z;
 
-    return roads.findIndex((road) => pz > road.zMax && pz < road.zMin);
+    return roads.findIndex((road) => posZ > road.zMax && posZ < road.zMin);
   }
 
   buildStartingRoads() {
