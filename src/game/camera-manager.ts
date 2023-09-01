@@ -5,24 +5,23 @@ export class CameraManager {
   private outOfViewDistance = -3; // How far behind camera to be considered out of view
   private outOfViewTimer = 0; // How long player has been out of view
   private outOfViewTimeLimit = 3; // Max time player can be out of view
-  private playerCameraDistance = 0; // Current distance from camera
   private cameraMoveSpeed = 5;
 
   constructor(private gameStore: GameStore, private events: EventListener) {}
 
   update(dt: number) {
     this.checkOutOfView(dt);
-    this.moveCamera(dt);
+    //this.moveCamera(dt);
   }
 
   private checkOutOfView(dt: number) {
     const { player, camera } = this.gameStore;
 
     // Get distance from player to camera
-    this.playerCameraDistance = camera.position.z - player.object.position.z;
+    player.cameraDistance = camera.position.z - player.object.position.z;
 
     // If player is behind camera by too much,
-    if (this.playerCameraDistance < this.outOfViewDistance) {
+    if (player.cameraDistance < this.outOfViewDistance) {
       // Incremenet out of view timer
       this.outOfViewTimer += dt;
 

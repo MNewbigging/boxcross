@@ -8,8 +8,9 @@ import { EventListener } from "../listeners/event-listener";
 import { GameLoader } from "../loaders/game-loader";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
+import { ManholeManager } from "./manhole-manager";
 import { PlayerManager } from "./player-manager";
-import { Renderer } from "../game/renderer";
+import { Renderer } from "./renderer";
 import { RoadBuilder } from "../utils/road-builder";
 import { RoadManager } from "./road-manager";
 import { createInitData } from "./model/game-init-data";
@@ -30,6 +31,7 @@ export class Game {
   private carManager: CarManager;
   private playerManager: PlayerManager;
   private cameraManager: CameraManager;
+  private manholeManager: ManholeManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -60,6 +62,10 @@ export class Game {
       this.eventListener
     );
     this.cameraManager = new CameraManager(this.gameStore, this.eventListener);
+    this.manholeManager = new ManholeManager(
+      this.gameStore,
+      this.eventListener
+    );
 
     // Perform initial game setup
     this.setupGame();
@@ -126,6 +132,7 @@ export class Game {
     if (!this.gameOver) {
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
+      this.manholeManager.update(dt);
     }
 
     this.renderer.render();

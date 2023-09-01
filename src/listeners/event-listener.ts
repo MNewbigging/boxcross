@@ -1,4 +1,4 @@
-import { Road } from "../game-v2/model/road";
+import { Road } from "../game/model/road";
 
 export interface EventMap {
   "road-created": Road;
