@@ -149,14 +149,6 @@ export class CarManager {
         // Player has hit the car, notify
         this.events.fire("player-hit-car", null);
 
-        /**
-         * TODO:
-         *
-         * - add the end game logic in somewhere (root game state?)
-         * - then add manholes back in
-         * - swapping car textures
-         */
-
         return;
       }
     }

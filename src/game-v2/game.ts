@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { action, makeAutoObservable, observable } from "mobx";
 import { gsap } from "gsap";
 
+import { CameraManager } from "./camera-manager";
 import { CarManager } from "./car-manager";
 import { EventListener } from "../listeners/event-listener";
 import { GameLoader } from "../loaders/game-loader";
@@ -28,6 +29,7 @@ export class Game {
   private roadManager: RoadManager;
   private carManager: CarManager;
   private playerManager: PlayerManager;
+  private cameraManager: CameraManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -57,6 +59,7 @@ export class Game {
       this.keyboardListener,
       this.eventListener
     );
+    this.cameraManager = new CameraManager(this.gameStore, this.eventListener);
 
     // Perform initial game setup
     this.setupGame();
@@ -87,6 +90,7 @@ export class Game {
 
     // Listeners
     this.eventListener.on("player-hit-car", this.onPlayerHitCar);
+    this.eventListener.on("player-out-of-view", this.onPlayerOutOfView);
   }
 
   @action onPlayerHitCar = () => {
@@ -106,6 +110,10 @@ export class Game {
     });
   };
 
+  @action onPlayerOutOfView = () => {
+    this.gameOver = true;
+  };
+
   private update = () => {
     requestAnimationFrame(this.update);
 
@@ -117,6 +125,7 @@ export class Game {
 
     if (!this.gameOver) {
       this.playerManager.update(dt);
+      this.cameraManager.update(dt);
     }
 
     this.renderer.render();

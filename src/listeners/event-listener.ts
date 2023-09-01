@@ -5,6 +5,7 @@ export interface EventMap {
   "road-removed": Road;
   "out-of-view": null;
   "player-hit-car": null;
+  "player-out-of-view": null;
 }
 
 type EventCallback = (event: any) => void;
