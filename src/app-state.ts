@@ -12,8 +12,6 @@ export class AppState {
 
   gameState?: Game;
   private readonly gameLoader = new GameLoader();
-  private eventListener = new EventListener();
-
   private boxScene?: BoxScene;
 
   constructor() {
@@ -37,24 +35,9 @@ export class AppState {
     }
 
     // Then start the game
-    if (this.gameState) {
-      this.gameState = undefined;
-      this.eventListener.clear();
-    }
-
-    this.gameState = new Game(canvas, this.gameLoader, this.eventListener);
+    this.gameState = new Game(canvas, this.gameLoader);
     this.gameStarted = true;
     this.gameState.startGame();
-  };
-
-  @action restartGame = () => {
-    const canvas = this.getGameCanvas();
-    if (!canvas) {
-      return;
-    }
-
-    // Clear any events
-    this.eventListener.clear();
   };
 
   private getGameCanvas() {

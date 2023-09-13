@@ -21,6 +21,7 @@ export class Game {
   @observable gameOver = false;
 
   private keyboardListener = new KeyboardListener();
+  private eventListener = new EventListener();
 
   private renderer: Renderer;
   private clock = new THREE.Clock();
@@ -34,8 +35,7 @@ export class Game {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private gameLoader: GameLoader,
-    private eventListener: EventListener
+    private gameLoader: GameLoader
   ) {
     makeAutoObservable(this);
 
