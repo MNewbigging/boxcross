@@ -1,0 +1,27 @@
+.start-screen {
+  position: relative;
+
+  .start-panel {
+    width: 400px;
+    height: 300px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+
+    .title {
+      margin-top: 0;
+    }
+  }
+
+  #box-canvas {
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    z-index: 10;
+    width: 200px;
+    height: 200px;
+  }
+}

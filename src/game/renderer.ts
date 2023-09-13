@@ -1,15 +1,16 @@
 import * as THREE from "three";
 
 export class Renderer {
-  private renderer: THREE.WebGLRenderer;
+  renderer: THREE.WebGLRenderer;
 
   constructor(
     private canvas: HTMLCanvasElement,
     private camera: THREE.PerspectiveCamera,
-    private scene: THREE.Scene
+    private scene: THREE.Scene,
+    alpha = false
   ) {
     // Setup renderer
-    this.renderer = new THREE.WebGLRenderer({ canvas });
+    this.renderer = new THREE.WebGLRenderer({ canvas, alpha, antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     THREE.ColorManagement.legacyMode = false;
     this.renderer.outputEncoding = THREE.sRGBEncoding;

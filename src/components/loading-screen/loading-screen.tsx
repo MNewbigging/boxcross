@@ -6,7 +6,7 @@ import { SpinnerSize } from "@blueprintjs/core/lib/esm/components";
 import { observer } from "mobx-react-lite";
 
 import { AppState } from "../../app-state";
-import { Button } from "../button/button";
+import { StartScreen } from "./start-screen";
 
 interface LoadingScreenProps {
   appState: AppState;
@@ -18,9 +18,7 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = observer(
       <div className="loading-screen">
         {!appState.canStart && <Spinner size={SpinnerSize.LARGE} />}
 
-        {appState.canStart && (
-          <Button text="Play" onClick={appState.startGame} />
-        )}
+        {appState.canStart && <StartScreen appState={appState} />}
       </div>
     );
   }
