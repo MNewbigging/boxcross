@@ -11,11 +11,11 @@ export class RoadManager {
     private events: EventListener
   ) {}
 
-  getCurrentRoadIndex() {
-    const { roads, camera } = this.gameStore;
-    const posZ = camera.position.z;
+  getCurrentRoadIndexFor(objectPosition: number) {
+    const { roads } = this.gameStore;
+    const posZ = objectPosition;
 
-    return roads.findIndex((road) => posZ > road.zMax && posZ < road.zMin);
+    return roads.findIndex((road) => posZ > road.zMax && posZ <= road.zMin);
   }
 
   buildStartingRoads() {
@@ -35,9 +35,30 @@ export class RoadManager {
 
   // Check if roads need adding/removing in the scene as player moves
   update() {
-    const { roads } = this.gameStore;
+    this.updateRoadsCrossed();
+    this.updateRoadSpawns();
+  }
 
-    const currentRoadIndex = this.getCurrentRoadIndex();
+  private updateRoadsCrossed() {
+    const { player, roads } = this.gameStore;
+
+    const currentRoadIndex = this.getCurrentRoadIndexFor(
+      player.object.position.z
+    );
+    if (currentRoadIndex < 0) {
+      return;
+    }
+
+    // Update roads crossed value
+    const { roadsCrossed } = this.gameStore;
+    const newCrossed = Math.max(roadsCrossed, roads[currentRoadIndex].index);
+    this.gameStore.updateRoadsCrossed(newCrossed);
+  }
+
+  private updateRoadSpawns() {
+    const { roads, camera } = this.gameStore;
+
+    const currentRoadIndex = this.getCurrentRoadIndexFor(camera.position.z);
     if (currentRoadIndex < 0) {
       return;
     }
@@ -53,10 +74,6 @@ export class RoadManager {
     if (currentRoadIndex >= 3) {
       this.removeOldestRoad();
     }
-
-    // Update roads crossed value
-    let { roadsCrossed } = this.gameStore;
-    roadsCrossed = Math.max(roadsCrossed, roads[currentRoadIndex].index);
   }
 
   private spawnNextRoad() {
