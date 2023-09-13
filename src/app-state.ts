@@ -8,7 +8,6 @@ import { GameLoader } from "./loaders/game-loader";
 export class AppState {
   @observable canStart = false;
   @observable gameStarted = false;
-  @observable gameOver = false;
 
   gameState?: Game;
   private readonly gameLoader = new GameLoader();
@@ -39,16 +38,6 @@ export class AppState {
     this.gameStarted = true;
     this.gameState.startGame();
   };
-
-  private getGameCanvas() {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!canvas) {
-      console.error("could not find game canvas");
-      return undefined;
-    }
-
-    return canvas;
-  }
 
   private async loadGame() {
     this.gameLoader.load(this.onLoad);
