@@ -32,6 +32,7 @@ export class AppState {
   @observable roadsCrossed = 0;
 
   private gameState?: Game;
+  private canvas?: HTMLCanvasElement;
   private readonly gameLoader = new GameLoader();
   private readonly eventListener = new EventListener();
   private boxScene?: BoxScene;
@@ -42,13 +43,7 @@ export class AppState {
     this.loadGame();
   }
 
-  @action startGame = () => {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!canvas) {
-      console.error("could not find game canvas");
-      return;
-    }
-
+  @action playGame = () => {
     // First stop the box scene
     if (this.boxScene) {
       this.boxScene.stop();
@@ -56,15 +51,27 @@ export class AppState {
     }
 
     // Then start the game
-    this.assignEventListeners();
-    this.gameState = new Game(canvas, this.gameLoader, this.eventListener);
-    this.currentScreen = Screen.GAME;
-    this.gameState.startGame();
+    this.startGame();
   };
 
   @action replayGame = () => {
-    this.currentScreen = Screen.GAME;
+    // Remove any events the game is using
+    this.eventListener.clear();
+
+    // Then start the game again
+    this.startGame();
   };
+
+  private startGame() {
+    if (!this.canvas) {
+      return;
+    }
+
+    this.assignEventListeners();
+    this.gameState = new Game(this.canvas, this.gameLoader, this.eventListener);
+    this.currentScreen = Screen.GAME;
+    this.gameState.startGame();
+  }
 
   private async loadGame() {
     // Preload assets for the start screen first
@@ -75,7 +82,12 @@ export class AppState {
   }
 
   private onPreLoad = () => {
+    // Start screen scene setup
     this.setupBoxCanvas();
+
+    // Game canvas would have mounted by now, get a ref to it
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    this.canvas = canvas;
   };
 
   private setupBoxCanvas() {
@@ -92,8 +104,10 @@ export class AppState {
   }
 
   @action private onLoad = () => {
-    // Can now start the game
-    this.canStart = true;
+    // So long as we were able to get a ref to the game canvas, can start
+    if (this.canvas) {
+      this.canStart = true;
+    }
   };
 
   @action private onGameOver = () => {

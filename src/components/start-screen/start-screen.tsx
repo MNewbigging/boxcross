@@ -30,7 +30,7 @@ export const StartScreen: React.FC<StartScreenProps> = observer(
 
             <Button
               text="Play"
-              onClick={appState.startGame}
+              onClick={appState.playGame}
               intent={Intent.PRIMARY}
               large
               loading={!appState.canStart}
