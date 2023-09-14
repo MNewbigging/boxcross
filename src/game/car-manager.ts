@@ -36,10 +36,10 @@ export class CarManager {
     // Test intersections with those cars
   }
 
-  update(dt: number) {
+  update(dt: number, gameOver: boolean) {
     const { roads } = this.gameStore;
 
-    // Update cars by road
+    // Update cars by road even if game is over
     roads.forEach((road) => {
       // Get the spawner for this road
       const spawner = this.roadSpawners.get(road.id);
@@ -54,8 +54,10 @@ export class CarManager {
       this.driveCars(dt, spawner);
     });
 
-    // Check for car collisions against player on current road
-    this.checkPlayerCollision();
+    // Check for player-car collisions so long as game still going
+    if (!gameOver) {
+      this.checkPlayerCollision();
+    }
   }
 
   private carSpawnCheck(dt: number, road: Road, spawner: RoadSpawner) {

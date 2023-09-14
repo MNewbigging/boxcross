@@ -129,10 +129,10 @@ export class Game {
     const dt = this.clock.getDelta();
 
     // Update managers
-    this.roadManager.update();
-    this.carManager.update(dt);
+    this.carManager.update(dt, this.gameOver);
 
     if (!this.gameOver) {
+      this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
       this.manholeManager.update();
