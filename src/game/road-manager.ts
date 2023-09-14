@@ -52,7 +52,10 @@ export class RoadManager {
     // Update roads crossed value
     const { roadsCrossed } = this.gameStore;
     const newCrossed = Math.max(roadsCrossed, roads[currentRoadIndex].index);
-    this.gameStore.updateRoadsCrossed(newCrossed);
+    if (roadsCrossed !== newCrossed) {
+      this.gameStore.roadsCrossed = newCrossed;
+      this.events.fire("road-crossed", newCrossed);
+    }
   }
 
   private updateRoadSpawns() {

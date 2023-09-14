@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { action, makeAutoObservable, observable } from "mobx";
 
 import { GameInitData } from "./model/game-init-data";
 import { GameLoader } from "../loaders/game-loader";
@@ -17,11 +16,9 @@ export class GameStore {
   world: World;
   roads: Road[] = [];
 
-  @observable roadsCrossed = 0;
+  roadsCrossed = 0;
 
   constructor(initData: GameInitData) {
-    makeAutoObservable(this);
-
     // Copy over init values
     this.canvas = initData.canvas;
     this.loader = initData.loader;
@@ -35,9 +32,5 @@ export class GameStore {
     const pz = this.player.object.position.z;
 
     return this.roads.find((road) => pz > road.zMax && pz < road.zMin);
-  }
-
-  @action updateRoadsCrossed(crossed: number) {
-    this.roadsCrossed = crossed;
   }
 }

@@ -31,7 +31,7 @@ export class AppState {
   @observable canStart = false;
   @observable roadsCrossed = 0;
 
-  gameState?: Game;
+  private gameState?: Game;
   private readonly gameLoader = new GameLoader();
   private readonly eventListener = new EventListener();
   private boxScene?: BoxScene;
@@ -57,7 +57,7 @@ export class AppState {
 
     // Then start the game
     this.assignEventListeners();
-    this.gameState = new Game(canvas, this.gameLoader);
+    this.gameState = new Game(canvas, this.gameLoader, this.eventListener);
     this.currentScreen = Screen.GAME;
     this.gameState.startGame();
   };

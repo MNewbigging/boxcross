@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { action, makeAutoObservable, observable } from "mobx";
 import { gsap } from "gsap";
 
 import { CameraManager } from "./camera-manager";
@@ -18,11 +17,9 @@ import { createInitData } from "./model/game-init-data";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  @observable gameOver = false;
 
+  private gameOver = false;
   private keyboardListener = new KeyboardListener();
-  private eventListener = new EventListener();
-
   private renderer: Renderer;
   private clock = new THREE.Clock();
 
@@ -35,10 +32,9 @@ export class Game {
 
   constructor(
     private canvas: HTMLCanvasElement,
-    private gameLoader: GameLoader
+    private gameLoader: GameLoader,
+    private eventListener: EventListener
   ) {
-    makeAutoObservable(this);
-
     // Create game store, passing initial game properties
     this.gameStore = new GameStore(createInitData(canvas, gameLoader));
 
@@ -100,10 +96,10 @@ export class Game {
     this.eventListener.on("player-out-of-view", this.onPlayerOutOfView);
   }
 
-  @action onPlayerHitCar = () => {
+  private onPlayerHitCar = () => {
     const { camera, player } = this.gameStore;
 
-    this.gameOver = true;
+    this.endGame();
 
     // Squash the box
     camera.lookAt(player.object.position);
@@ -117,9 +113,15 @@ export class Game {
     });
   };
 
-  @action onPlayerOutOfView = () => {
-    this.gameOver = true;
+  private onPlayerOutOfView = () => {
+    this.endGame();
   };
+
+  private endGame() {
+    this.gameOver = true;
+    // Fire game over event
+    this.eventListener.fire("game-over", null);
+  }
 
   private update = () => {
     requestAnimationFrame(this.update);
