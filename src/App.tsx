@@ -6,7 +6,7 @@ import { observer } from "mobx-react-lite";
 import { AppState, Screen } from "./app-state";
 import { GameOverScreen } from "./components/game-over-screen/game-over-screen";
 import { GameUI } from "./components/game-ui/game-ui";
-import { StartScreen } from "./components/loading-screen/start-screen";
+import { StartScreen } from "./components/start-screen/start-screen";
 
 interface AppProps {
   appState: AppState;

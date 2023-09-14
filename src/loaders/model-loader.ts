@@ -60,13 +60,36 @@ export class ModelLoader {
     return clone;
   }
 
+  preLoad(onPreLoad: () => void) {
+    const preloadMgr = new THREE.LoadingManager();
+    preloadMgr.onLoad = () => {
+      onPreLoad();
+    };
+    const preloader = new GLTFLoader(preloadMgr);
+
+    const boxUrl = new URL("/box-small.glb", import.meta.url).href;
+    preloader.load(boxUrl, (gltf) => {
+      // Traverse the gltf scene
+      gltf.scene.traverse((child) => {
+        const node = child as THREE.Mesh;
+        if (node.isMesh) {
+          // Kenney assets need their metalness reducing to render correctly
+          const mat = node.material as THREE.MeshStandardMaterial;
+          mat.metalness = 0;
+        }
+      });
+
+      this.models.set("box", gltf.scene);
+    });
+  }
+
   load(onLoad: () => void) {
     // Setup loading manager
-    this.loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
-      console.log(
-        `Loading model: ${url}. \n Loaded ${itemsLoaded} of ${itemsTotal}.`
-      );
-    };
+    // this.loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+    //   console.log(
+    //     `Loading model: ${url}. \n Loaded ${itemsLoaded} of ${itemsTotal}.`
+    //   );
+    // };
 
     this.loadingManager.onLoad = () => {
       this.loading = false;
@@ -87,20 +110,20 @@ export class ModelLoader {
   private loadModels() {
     const gltfLoader = new GLTFLoader(this.loadingManager);
 
-    const boxUrl = new URL("/box-small.glb", import.meta.url).href;
-    gltfLoader.load(boxUrl, (gltf) => {
-      // Traverse the gltf scene
-      gltf.scene.traverse((child) => {
-        const node = child as THREE.Mesh;
-        if (node.isMesh) {
-          // Kenney assets need their metalness reducing to render correctly
-          const mat = node.material as THREE.MeshStandardMaterial;
-          mat.metalness = 0;
-        }
-      });
+    // const boxUrl = new URL("/box-small.glb", import.meta.url).href;
+    // gltfLoader.load(boxUrl, (gltf) => {
+    //   // Traverse the gltf scene
+    //   gltf.scene.traverse((child) => {
+    //     const node = child as THREE.Mesh;
+    //     if (node.isMesh) {
+    //       // Kenney assets need their metalness reducing to render correctly
+    //       const mat = node.material as THREE.MeshStandardMaterial;
+    //       mat.metalness = 0;
+    //     }
+    //   });
 
-      this.models.set("box", gltf.scene);
-    });
+    //   this.models.set("box", gltf.scene);
+    // });
 
     const boxCrossUrl = new URL("/boxCross.glb", import.meta.url).href;
     gltfLoader.load(boxCrossUrl, (gltf) => {

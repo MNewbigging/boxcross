@@ -15,6 +15,8 @@ import { GameLoader } from "./loaders/game-loader";
  *
  * - rename loading screen to start screen
  * - use an enum to track current screen, switch in app
+ *
+ * - can actions be private?
  */
 
 export enum Screen {
@@ -37,8 +39,9 @@ export class AppState {
   constructor() {
     makeAutoObservable(this);
 
-    // Give canvas time to mount
-    setTimeout(() => this.loadGame(), 10);
+    this.loadGame();
+    // Give UI time to mount
+    //setTimeout(() => this.loadGame(), 10);
   }
 
   @action startGame = () => {
@@ -62,15 +65,20 @@ export class AppState {
   };
 
   private async loadGame() {
+    // Preload assets for the start screen first
+    this.gameLoader.modelLoader.preLoad(this.onPreLoad);
+
+    // Then load game assets
     this.gameLoader.load(this.onLoad);
   }
 
   @action onLoad = () => {
     // Can now start the game
     this.canStart = true;
+  };
 
-    // Once start screen has mounted, can start box scene
-    setTimeout(() => this.setupBoxCanvas(), 10);
+  private onPreLoad = () => {
+    this.setupBoxCanvas();
   };
 
   private setupBoxCanvas() {
