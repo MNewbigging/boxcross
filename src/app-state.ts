@@ -5,12 +5,33 @@ import { EventListener } from "./listeners/event-listener";
 import { Game } from "./game/game";
 import { GameLoader } from "./loaders/game-loader";
 
+/**
+ * For some reason, creating new Game instances does not overwrite - dupes are made.
+ *
+ * Need to separate observable state from the game:
+ * - pass in the event listener to the game
+ * - appState can listen for events and update observable props
+ * - that way, those props are never reassigned when new game classes are made
+ *
+ * - rename loading screen to start screen
+ * - use an enum to track current screen, switch in app
+ */
+
+export enum Screen {
+  START = "start",
+  GAME = "game",
+  GAME_OVER = "game-over",
+}
+
 export class AppState {
+  // Observable props for the UI
+  @observable currentScreen = Screen.START;
   @observable canStart = false;
-  @observable gameStarted = false;
+  @observable roadsCrossed = 0;
 
   gameState?: Game;
   private readonly gameLoader = new GameLoader();
+  private readonly eventListener = new EventListener();
   private boxScene?: BoxScene;
 
   constructor() {
@@ -34,8 +55,9 @@ export class AppState {
     }
 
     // Then start the game
+    this.assignEventListeners();
     this.gameState = new Game(canvas, this.gameLoader);
-    this.gameStarted = true;
+    this.currentScreen = Screen.GAME;
     this.gameState.startGame();
   };
 
@@ -62,5 +84,22 @@ export class AppState {
     }
 
     this.boxScene = new BoxScene(boxCanvas, this.gameLoader);
+  }
+
+  @action onGameOver = () => {
+    this.currentScreen = Screen.GAME_OVER;
+  };
+
+  @action replayGame = () => {
+    this.currentScreen = Screen.GAME;
+  };
+
+  @action updateRoadsCrossed = (roadsCrossed: number) => {
+    this.roadsCrossed = roadsCrossed;
+  };
+
+  private assignEventListeners() {
+    this.eventListener.on("road-crossed", this.updateRoadsCrossed);
+    this.eventListener.on("game-over", this.onGameOver);
   }
 }

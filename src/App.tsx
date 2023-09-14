@@ -3,27 +3,38 @@ import "./app.scss";
 import React from "react";
 import { observer } from "mobx-react-lite";
 
-import { AppState } from "./app-state";
+import { AppState, Screen } from "./app-state";
 import { GameOverScreen } from "./components/game-over-screen/game-over-screen";
 import { GameUI } from "./components/game-ui/game-ui";
-import { LoadingScreen } from "./components/loading-screen/loading-screen";
+import { StartScreen } from "./components/loading-screen/start-screen";
 
 interface AppProps {
   appState: AppState;
 }
 
 export const App: React.FC<AppProps> = observer(({ appState }) => {
-  console.log("game over", appState.gameState?.gameOver);
+  let screen: JSX.Element;
+
+  switch (appState.currentScreen) {
+    case Screen.START:
+      screen = <StartScreen appState={appState} />;
+      break;
+    case Screen.GAME:
+      screen = <GameUI appState={appState} />;
+      break;
+    case Screen.GAME_OVER:
+      screen = <GameOverScreen appState={appState} />;
+      break;
+    default:
+      screen = <span>Something went wrong!</span>;
+      break;
+  }
 
   return (
     <div className="app">
       <canvas id="canvas"></canvas>
 
-      {!appState.gameStarted && <LoadingScreen appState={appState} />}
-
-      {appState.gameStarted && <GameUI appState={appState} />}
-
-      {appState.gameState?.gameOver && <GameOverScreen appState={appState} />}
+      {screen}
     </div>
   );
 });
