@@ -40,8 +40,6 @@ export class AppState {
     makeAutoObservable(this);
 
     this.loadGame();
-    // Give UI time to mount
-    //setTimeout(() => this.loadGame(), 10);
   }
 
   @action startGame = () => {
@@ -64,6 +62,10 @@ export class AppState {
     this.gameState.startGame();
   };
 
+  @action replayGame = () => {
+    this.currentScreen = Screen.GAME;
+  };
+
   private async loadGame() {
     // Preload assets for the start screen first
     this.gameLoader.modelLoader.preLoad(this.onPreLoad);
@@ -71,11 +73,6 @@ export class AppState {
     // Then load game assets
     this.gameLoader.load(this.onLoad);
   }
-
-  @action onLoad = () => {
-    // Can now start the game
-    this.canStart = true;
-  };
 
   private onPreLoad = () => {
     this.setupBoxCanvas();
@@ -94,15 +91,16 @@ export class AppState {
     this.boxScene = new BoxScene(boxCanvas, this.gameLoader);
   }
 
-  @action onGameOver = () => {
+  @action private onLoad = () => {
+    // Can now start the game
+    this.canStart = true;
+  };
+
+  @action private onGameOver = () => {
     this.currentScreen = Screen.GAME_OVER;
   };
 
-  @action replayGame = () => {
-    this.currentScreen = Screen.GAME;
-  };
-
-  @action updateRoadsCrossed = (roadsCrossed: number) => {
+  @action private updateRoadsCrossed = (roadsCrossed: number) => {
     this.roadsCrossed = roadsCrossed;
   };
 
