@@ -13,10 +13,14 @@ import { GameLoader } from "./loaders/game-loader";
  * - appState can listen for events and update observable props
  * - that way, those props are never reassigned when new game classes are made
  *
- * - rename loading screen to start screen
- * - use an enum to track current screen, switch in app
+ * New thinking:
  *
- * - can actions be private?
+ * Surely it's less performant to re-init the entire game rather than resetting values across numerous classes?
+ *
+ * - Benchmark memory usage before this refactor
+ * - Never re-init the game class, only reset the game
+ * - Benchmark again and compare
+ *
  */
 
 export enum Screen {
@@ -68,6 +72,7 @@ export class AppState {
     }
 
     this.assignEventListeners();
+    this.gameState = undefined;
     this.gameState = new Game(this.canvas, this.gameLoader, this.eventListener);
     this.currentScreen = Screen.GAME;
     this.gameState.startGame();
