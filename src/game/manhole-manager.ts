@@ -6,7 +6,7 @@ import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { ModelNames } from "../loaders/model-loader";
 import { Road } from "../utils/road-builder";
-import { randomRange, randomRangeInt } from "../utils/utils";
+import { disposeObject, randomRange, randomRangeInt } from "../utils/utils";
 
 export class ManholeManager {
   private inManhole?: THREE.Object3D;
@@ -32,9 +32,9 @@ export class ManholeManager {
     this.inManhole = undefined;
     this.canInteract = true;
 
-    this.manholes.forEach((manholes: THREE.Object3D[]) =>
-      manholes.forEach((manhole) => this.gameStore.scene.remove(manhole))
-    );
+    this.manholes.forEach((manholes: THREE.Object3D[]) => {
+      manholes.forEach((manhole) => this.gameStore.scene.remove(manhole));
+    });
     this.manholes.clear();
   }
 

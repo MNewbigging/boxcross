@@ -2,6 +2,7 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { createPlayer } from "./model/game-init-data";
+import { disposeObject } from "../utils/utils";
 
 export class PlayerManager {
   private readonly maxUpperMovement = 24; // Measured against player.cameraDistance to prevent moving up offscreen

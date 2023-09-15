@@ -1,6 +1,9 @@
+import * as THREE from "three";
+
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { RoadBuilder } from "../utils/road-builder";
+import { disposeObject } from "../utils/utils";
 
 export class RoadManager {
   private readonly roadBuffer = 2; // How many roads must be ahead/behind player
@@ -117,6 +120,7 @@ export class RoadManager {
     world.zMin = oldestRoad.zMax;
 
     // Remove objects from the scene
+    disposeObject(oldestRoad.objects);
     scene.remove(oldestRoad.objects);
 
     // Remove the road data

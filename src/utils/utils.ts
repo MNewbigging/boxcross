@@ -42,3 +42,11 @@ export function randomId(length: number = 5) {
 
   return id;
 }
+
+export function disposeObject(object: THREE.Object3D) {
+  object.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      (child as THREE.Mesh).geometry.dispose();
+    }
+  });
+}

@@ -13,6 +13,7 @@ import { Renderer } from "./renderer";
 import { RoadBuilder } from "../utils/road-builder";
 import { RoadManager } from "./road-manager";
 import { createInitData } from "./model/game-init-data";
+import { disposeObject } from "../utils/utils";
 
 // Highest level class for the entire game
 export class Game {
@@ -22,6 +23,7 @@ export class Game {
   private keyboardListener = new KeyboardListener();
   private renderer: Renderer;
   private clock = new THREE.Clock();
+  private animRequestId = 0;
 
   // Managers
   private roadManager: RoadManager;
@@ -82,8 +84,15 @@ export class Game {
   }
 
   resetGame() {
+    console.log(
+      "before reset: ",
+      this.renderer.renderer.info.memory.geometries
+    );
+
     // Set to default values to prepare for a brand new game
     this.gameOver = false;
+
+    disposeObject(this.gameStore.scene);
 
     // Manager resets
     this.playerManager.reset();
@@ -91,6 +100,10 @@ export class Game {
     this.carManager.reset();
     this.cameraManager.reset();
     this.manholeManager.reset();
+
+    cancelAnimationFrame(this.animRequestId);
+
+    console.log("after reset:", this.renderer.renderer.info.memory.geometries);
 
     // Run setup again
     this.setupGame();
@@ -139,7 +152,7 @@ export class Game {
   }
 
   private update = () => {
-    requestAnimationFrame(this.update);
+    this.animRequestId = requestAnimationFrame(this.update);
 
     const dt = this.clock.getDelta();
 

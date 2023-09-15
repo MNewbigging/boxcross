@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
-import { randomRange } from "../utils/utils";
+import { disposeObject, randomRange } from "../utils/utils";
 
 interface RoadSpawner {
   leftLaneSpawnTimer: number; // tracks time since last spawn
@@ -131,6 +131,9 @@ export class CarManager {
       // Check against bounds
       if (car.object.position.x > world.xMax || car.object.position.x < 0) {
         toDestroy.push(car);
+
+        // Dispose of the car object
+        disposeObject(car.object);
         scene.remove(car.object);
       }
     });
