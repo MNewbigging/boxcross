@@ -47,7 +47,7 @@ function createScene() {
   return scene;
 }
 
-function createPlayer(loader: GameLoader): Player {
+export function createPlayer(loader: GameLoader): Player {
   const object = loader.modelLoader.get(ModelNames.PLAYER);
   object.scale.set(2, 2, 2);
 

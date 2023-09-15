@@ -2,12 +2,18 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 
 export class CameraManager {
-  private outOfViewDistance = -3; // How far behind camera to be considered out of view
+  private readonly outOfViewDistance = -3; // How far behind camera to be considered out of view
   private outOfViewTimer = 0; // How long player has been out of view
-  private outOfViewTimeLimit = 3; // Max time player can be out of view
+  private readonly outOfViewTimeLimit = 3; // Max time player can be out of view
   private cameraMoveSpeed = 5;
 
   constructor(private gameStore: GameStore, private events: EventListener) {}
+
+  reset() {
+    this.outOfViewTimer = 0;
+    this.gameStore.camera.zoom = 1;
+    this.gameStore.camera.updateProjectionMatrix();
+  }
 
   update(dt: number) {
     this.checkOutOfView(dt);

@@ -31,9 +31,13 @@ export class CarManager {
     events.on("road-removed", this.onRoadRemoved);
   }
 
-  playerHitCar() {
-    // Get cars for the current road
-    // Test intersections with those cars
+  reset() {
+    // Clean up cars for new game
+    this.roadSpawners.forEach((spawner: RoadSpawner) =>
+      spawner.cars.forEach((car) => this.gameStore.scene.remove(car.object))
+    );
+
+    this.roadSpawners.clear();
   }
 
   update(dt: number, gameOver: boolean) {

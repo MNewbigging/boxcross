@@ -18,6 +18,8 @@ import { GameLoader } from "./loaders/game-loader";
  * Surely it's less performant to re-init the entire game rather than resetting values across numerous classes?
  *
  * - Benchmark memory usage before this refactor
+ * -- 20 seconds, hit replay 3 times and played til next replay would show
+ * -- heap usage 9.6mb - 18.1mb
  * - Never re-init the game class, only reset the game
  * - Benchmark again and compare
  *
@@ -48,35 +50,41 @@ export class AppState {
   }
 
   @action playGame = () => {
+    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+    if (!canvas) {
+      console.error("could not find game canvas");
+      return;
+    }
+
     // First stop the box scene
     if (this.boxScene) {
+      // todo proper disposal of this scene
       this.boxScene.stop();
       this.boxScene = undefined;
     }
 
+    // Assign listener events before starting first game
+    this.assignEventListeners();
+
     // Then start the game
-    this.startGame();
+    this.gameState = new Game(canvas, this.gameLoader, this.eventListener);
+    this.currentScreen = Screen.GAME;
+    this.gameState.startGame();
   };
 
   @action replayGame = () => {
-    // Remove any events the game is using
-    this.eventListener.clear();
-
-    // Then start the game again
-    this.startGame();
-  };
-
-  private startGame() {
-    if (!this.canvas) {
+    if (!this.gameState) {
       return;
     }
 
-    this.assignEventListeners();
-    this.gameState = undefined;
-    this.gameState = new Game(this.canvas, this.gameLoader, this.eventListener);
+    // Reset values for a new game
+    this.roadsCrossed = 0;
+    this.gameState.resetGame();
+
+    // Then start the game
     this.currentScreen = Screen.GAME;
     this.gameState.startGame();
-  }
+  };
 
   private async loadGame() {
     // Preload assets for the start screen first

@@ -11,11 +11,12 @@ import { randomRange, randomRangeInt } from "../utils/utils";
 export class ManholeManager {
   private inManhole?: THREE.Object3D;
   private canInteract = true; // False when manhole is animating, prevents layered/dupe animations
-  private manholes = new Map<string, THREE.Object3D[]>(); // road it to manhole objects array
+  private manholes = new Map<string, THREE.Object3D[]>(); // road id to manhole objects array
+  private patches: THREE.Object3D[] = [];
   private readonly minEnterDistance = 1;
   private readonly manholePosY = 0.02;
-  private minManholeCount = 0;
-  private maxManholeCount = 2;
+  private readonly minManholeCount = 0;
+  private readonly maxManholeCount = 2;
 
   constructor(
     private gameStore: GameStore,
@@ -25,6 +26,16 @@ export class ManholeManager {
     // Listeners
     this.events.on("road-created", this.onRoadCreated);
     this.events.on("road-removed", this.onRoadRemoved);
+  }
+
+  reset() {
+    this.inManhole = undefined;
+    this.canInteract = true;
+
+    this.manholes.forEach((manholes: THREE.Object3D[]) =>
+      manholes.forEach((manhole) => this.gameStore.scene.remove(manhole))
+    );
+    this.manholes.clear();
   }
 
   private getRandomManholePosition(zOffset: number) {
@@ -64,14 +75,15 @@ export class ManholeManager {
 
     const manholeCovers: THREE.Object3D[] = [];
     manholePositions.forEach((manholePosition) => {
-      // Add manhole models to road objects so they're added/removed to/from scene together
+      // Add manholes to scene directly; keep track in this class for animating later
       const manhole = modelLoader.get(ModelNames.MANHOLE_COVER);
       manhole.position.copy(manholePosition);
       scene.add(manhole);
 
+      // Add patches to road objects so they are removed from scene together
       const patch = modelLoader.get(ModelNames.MANHOLE_PATCH);
       patch.position.copy(manholePosition);
-      scene.add(patch);
+      road.objects.add(patch);
 
       manholeCovers.push(manhole);
     });

@@ -1,6 +1,7 @@
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
+import { createPlayer } from "./model/game-init-data";
 
 export class PlayerManager {
   private readonly maxUpperMovement = 24; // Measured against player.cameraDistance to prevent moving up offscreen
@@ -10,6 +11,14 @@ export class PlayerManager {
     private keyboardListener: KeyboardListener,
     private events: EventListener
   ) {}
+
+  reset() {
+    // Remove the player from the scene
+    this.gameStore.scene.remove(this.gameStore.player.object);
+
+    // Create a new player
+    this.gameStore.player = createPlayer(this.gameStore.loader);
+  }
 
   update(dt: number) {
     const { player } = this.gameStore;

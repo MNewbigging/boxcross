@@ -64,6 +64,15 @@ export class Game {
       this.keyboardListener
     );
 
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    const directLight = new THREE.DirectionalLight();
+    this.gameStore.scene.add(ambientLight, directLight);
+
+    // Listeners
+    this.eventListener.on("player-hit-car", this.onPlayerHitCar);
+    this.eventListener.on("player-out-of-view", this.onPlayerOutOfView);
+
     // Perform initial game setup
     this.setupGame();
   }
@@ -72,13 +81,23 @@ export class Game {
     this.update();
   }
 
+  resetGame() {
+    // Set to default values to prepare for a brand new game
+    this.gameOver = false;
+
+    // Manager resets
+    this.playerManager.reset();
+    this.roadManager.reset();
+    this.carManager.reset();
+    this.cameraManager.reset();
+    this.manholeManager.reset();
+
+    // Run setup again
+    this.setupGame();
+  }
+
   private setupGame() {
     const { scene, camera, world, player } = this.gameStore;
-
-    // Add lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-    const directLight = new THREE.DirectionalLight();
-    scene.add(ambientLight, directLight);
 
     // Position camera
     camera.position.set(world.xMid, 30, 0);
@@ -90,10 +109,6 @@ export class Game {
     // Place player
     player.object.position.set(world.xMid, 0.01, -2.5);
     scene.add(player.object);
-
-    // Listeners
-    this.eventListener.on("player-hit-car", this.onPlayerHitCar);
-    this.eventListener.on("player-out-of-view", this.onPlayerOutOfView);
   }
 
   private onPlayerHitCar = () => {

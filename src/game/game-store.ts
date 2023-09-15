@@ -8,14 +8,15 @@ import { World } from "./model/world";
 
 // Highest level store class for the entire game
 export class GameStore {
+  // These never get reassigned
   canvas: HTMLCanvasElement;
   loader: GameLoader;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
+  // Game specific
   player: Player;
   world: World;
   roads: Road[] = [];
-
   roadsCrossed = 0;
 
   constructor(initData: GameInitData) {

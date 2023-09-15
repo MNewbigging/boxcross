@@ -11,13 +11,6 @@ export class RoadManager {
     private events: EventListener
   ) {}
 
-  getCurrentRoadIndexFor(objectPosition: number) {
-    const { roads } = this.gameStore;
-    const posZ = objectPosition;
-
-    return roads.findIndex((road) => posZ > road.zMax && posZ <= road.zMin);
-  }
-
   buildStartingRoads() {
     const { roads, scene } = this.gameStore;
 
@@ -33,10 +26,26 @@ export class RoadManager {
     }
   }
 
+  reset() {
+    // Clear all the roads in the game
+    this.gameStore.roads.forEach((road) =>
+      this.gameStore.scene.remove(road.objects)
+    );
+    this.gameStore.roads = [];
+    this.gameStore.roadsCrossed = 0; // todo fire roads-crossed here?
+  }
+
   // Check if roads need adding/removing in the scene as player moves
   update() {
     this.updateRoadsCrossed();
     this.updateRoadSpawns();
+  }
+
+  private getCurrentRoadIndexFor(objectPosition: number) {
+    const { roads } = this.gameStore;
+    const posZ = objectPosition;
+
+    return roads.findIndex((road) => posZ > road.zMax && posZ <= road.zMin);
   }
 
   private updateRoadsCrossed() {
