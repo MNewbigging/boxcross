@@ -5,6 +5,7 @@ import { createPlayer } from "./model/game-init-data";
 import { disposeObject } from "../utils/utils";
 
 export class PlayerManager {
+  private moveSpeed = 15;
   private readonly maxUpperMovement = 24; // Measured against player.cameraDistance to prevent moving up offscreen
 
   constructor(
@@ -37,21 +38,21 @@ export class PlayerManager {
     const { player, world } = this.gameStore;
 
     if (this.keyboardListener.isKeyPressed("a")) {
-      const newPos = player.object.position.x - player.moveSpeed * dt;
+      const newPos = player.object.position.x - this.moveSpeed * dt;
       player.object.position.x = Math.max(newPos, world.xMinPlayer);
     }
     if (this.keyboardListener.isKeyPressed("d")) {
-      const newPos = player.object.position.x + player.moveSpeed * dt;
+      const newPos = player.object.position.x + this.moveSpeed * dt;
       player.object.position.x = Math.min(newPos, world.xMaxPlayer);
     }
     if (this.keyboardListener.isKeyPressed("w")) {
       // Prevent moving beyond camera view
       if (player.cameraDistance < this.maxUpperMovement) {
-        player.object.position.z -= player.moveSpeed * dt;
+        player.object.position.z -= this.moveSpeed * dt;
       }
     }
     if (this.keyboardListener.isKeyPressed("s")) {
-      const newPos = player.object.position.z + player.moveSpeed * dt;
+      const newPos = player.object.position.z + this.moveSpeed * dt;
       player.object.position.z = Math.min(newPos, world.zMin);
     }
   }

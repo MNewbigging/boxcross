@@ -5,8 +5,8 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { ModelNames } from "../loaders/model-loader";
-import { Road } from "./road-builder";
 import { disposeObject, randomRange, randomRangeInt } from "../utils/utils";
+import { Road } from "./model/road";
 
 interface Manhole {
   cover: THREE.Object3D;

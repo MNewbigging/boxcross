@@ -53,9 +53,9 @@ export function createPlayer(loader: GameLoader): Player {
 
   return {
     object,
-    moveSpeed: 15,
     cameraDistance: 0,
     canMove: true,
+    activeEffects: [],
   };
 }
 
