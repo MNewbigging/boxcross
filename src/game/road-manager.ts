@@ -4,6 +4,7 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { RoadBuilder } from "./road-builder";
 import { disposeObject } from "../utils/utils";
+import { PlayerEffect } from "./model/player";
 
 export class RoadManager {
   private readonly roadAheadBuffer = 2;
@@ -158,7 +159,9 @@ export class RoadManager {
       }
     }
 
-    // Set player speed accordingly
-    //player.moveSpeed = overCrossing ? 20 : 5;
+    // Add/remove crossing player effect as appropriate
+    overCrossing
+      ? player.addActiveEffect(PlayerEffect.ON_CROSSING)
+      : player.removeActiveEffect(PlayerEffect.ON_CROSSING);
   }
 }

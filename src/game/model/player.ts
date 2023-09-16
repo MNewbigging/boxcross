@@ -13,11 +13,11 @@ import * as THREE from "three";
 
 export enum PlayerEffect {
   IN_MANHOLE = "in-manhole",
+  ON_CROSSING = "on-crossing",
 }
 
 export class Player {
   cameraDistance = 0;
-  //canMove = true;
 
   private activeEffects: PlayerEffect[] = [];
 
@@ -38,5 +38,9 @@ export class Player {
     this.activeEffects = this.activeEffects.filter(
       (activeEffect) => activeEffect !== effect
     );
+  }
+
+  hasActiveEffect(effect: PlayerEffect) {
+    return this.activeEffects.includes(effect);
   }
 }
