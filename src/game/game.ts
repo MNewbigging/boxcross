@@ -10,7 +10,7 @@ import { KeyboardListener } from "../listeners/keyboard-listener";
 import { ManholeManager } from "./manhole-manager";
 import { PlayerManager } from "./player-manager";
 import { Renderer } from "./renderer";
-import { RoadBuilder } from "../utils/road-builder";
+import { RoadBuilder } from "./road-builder";
 import { RoadManager } from "./road-manager";
 import { createInitData } from "./model/game-init-data";
 import { disposeObject } from "../utils/utils";

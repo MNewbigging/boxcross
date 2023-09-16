@@ -1,7 +1,7 @@
 import * as THREE from "three";
 
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
-import { randomId, randomIndex, randomRange } from "./utils";
+import { randomId, randomIndex, randomRange } from "../utils/utils";
 
 export interface Road {
   id: string;

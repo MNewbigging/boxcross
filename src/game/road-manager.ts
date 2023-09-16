@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
-import { RoadBuilder } from "../utils/road-builder";
+import { RoadBuilder } from "./road-builder";
 import { disposeObject } from "../utils/utils";
 
 export class RoadManager {

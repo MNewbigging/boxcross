@@ -5,7 +5,7 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { ModelNames } from "../loaders/model-loader";
-import { Road } from "../utils/road-builder";
+import { Road } from "./road-builder";
 import { disposeObject, randomRange, randomRangeInt } from "../utils/utils";
 
 interface Manhole {
