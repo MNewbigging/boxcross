@@ -13,11 +13,12 @@ import { Renderer } from "./renderer";
 import { RoadBuilder } from "./road-builder";
 import { RoadManager } from "./road-manager";
 import { createInitData } from "./model/game-init-data";
-import { disposeObject } from "../utils/utils";
+import { IntroManager } from "./intro-manager";
 
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
+  usingIntro = true;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();
@@ -31,6 +32,7 @@ export class Game {
   private playerManager: PlayerManager;
   private cameraManager: CameraManager;
   private manholeManager: ManholeManager;
+  private introManager: IntroManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -65,6 +67,7 @@ export class Game {
       this.eventListener,
       this.keyboardListener
     );
+    this.introManager = new IntroManager(this.gameStore);
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -80,6 +83,11 @@ export class Game {
   }
 
   startGame() {
+    // Start the intro cutscene
+    if (this.usingIntro) {
+      this.introManager.startIntro();
+    }
+
     this.update();
   }
 
@@ -117,9 +125,11 @@ export class Game {
     // Build the starting roads
     this.roadManager.buildStartingRoads();
 
-    // Place player
-    player.object.position.set(world.xMid, 0.01, -2.5);
-    scene.add(player.object);
+    // Place player if not using intro
+    if (!this.usingIntro) {
+      player.object.position.set(world.xMid, 0.01, -2.5);
+      scene.add(player.object);
+    }
   }
 
   private onPlayerHitCar = () => {

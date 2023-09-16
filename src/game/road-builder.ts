@@ -24,8 +24,11 @@ export class RoadBuilder {
   constructor(private modelLoader: ModelLoader) {}
 
   buildStartingRoad() {
-    // Custom road will go here eventually
+    // Just use a normal road for now
     const road = this.buildRoad(0, 0);
+
+    // This is a unique road
+    road.id = "start-road";
 
     return road;
   }

@@ -167,6 +167,11 @@ export class CarManager {
   }
 
   private onRoadCreated = (road: Road) => {
+    // We don't spawn cars on the starting road
+    if (road.id === "start-road") {
+      return;
+    }
+
     // Create the spawner object for this road
     this.setupRoadSpawner(road);
   };
