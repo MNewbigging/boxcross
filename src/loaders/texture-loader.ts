@@ -1,5 +1,10 @@
 import * as THREE from "three";
 
+export enum TextureNames {
+  ONE_A = "one-a",
+  ONE_B = "one-b",
+}
+
 export class TextureLoader {
   loading = false;
   readonly textures = new Map<string, THREE.Texture>();
@@ -27,7 +32,14 @@ export class TextureLoader {
     const loader = new THREE.TextureLoader(this.loadingManager);
 
     // Example
-    const textureUrl = new URL("/path/to/texture", import.meta.url).href;
-    //loader.load(textureUrl, (texture) => this.textures.set('name', texture));
+    const oneA = new URL("/PolygonCity_Texture_01_A.png", import.meta.url).href;
+    loader.load(oneA, (texture) =>
+      this.textures.set(TextureNames.ONE_A, texture)
+    );
+
+    const oneB = new URL("/PolygonCity_Texture_01_B.png", import.meta.url).href;
+    loader.load(oneB, (texture) =>
+      this.textures.set(TextureNames.ONE_B, texture)
+    );
   }
 }

@@ -3,7 +3,8 @@ import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
-import { disposeObject, randomRange } from "../utils/utils";
+import { applyTexture, disposeObject, randomRange } from "../utils/utils";
+import { TextureNames } from "../loaders/texture-loader";
 
 interface RoadSpawner {
   leftLaneSpawnTimer: number; // tracks time since last spawn
@@ -100,6 +101,14 @@ export class CarManager {
     const carName =
       modelLoader.cars[Math.floor(Math.random() * modelLoader.cars.length)];
     const carObject = modelLoader.get(carName);
+
+    // Testing textures
+    // const texture = this.gameStore.loader.textureLoader.textures.get(
+    //   TextureNames.ONE_B
+    // );
+    // if (texture) {
+    //   applyTexture(carObject, texture);
+    // }
 
     // Position according to direction
     carObject.lookAt(direction, 0, 0);

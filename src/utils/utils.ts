@@ -50,3 +50,13 @@ export function disposeObject(object: THREE.Object3D) {
     }
   });
 }
+
+export function applyTexture(object: THREE.Object3D, texture: THREE.Texture) {
+  console.log("apply texture to", object);
+  object.traverse((child) => {
+    if (child instanceof THREE.Mesh && child.material.map) {
+      // Replace the map property
+      child.material.map = texture;
+    }
+  });
+}
