@@ -2,17 +2,7 @@ import * as THREE from "three";
 
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
 import { randomId, randomIndex, randomRange } from "../utils/utils";
-
-export interface Road {
-  id: string;
-  index: number; // out of all total roads
-  objects: THREE.Group; // the road and pavement objects
-  zMin: number; // Closest z value
-  zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
-  zLeftLane: number; // Where to spawn cars moving from left-right
-  zRightLane: number; // Where to spawn cars moving from right-left
-  crossings: THREE.Box2[]; // bounds of any crossings on this road
-}
+import { Road } from "./model/road";
 
 enum RoadColumnType {
   BASIC = "basic",
@@ -67,7 +57,7 @@ export class RoadBuilder {
   }
 
   private getSchemaCrossingBounds(schema: RoadColumnType[], zPos: number) {
-    const crossingBounds: THREE.Box2[] = [];
+    const crossingBounds: THREE.Box3[] = [];
 
     for (let i = 0; i < schema.length; i++) {
       if (schema[i] !== RoadColumnType.CROSSING) {
@@ -80,9 +70,9 @@ export class RoadBuilder {
       const zMax = zPos - 5;
 
       crossingBounds.push(
-        new THREE.Box2(
-          new THREE.Vector2(xMin, zMin),
-          new THREE.Vector2(xMax, zMax)
+        new THREE.Box3(
+          new THREE.Vector3(xMin, -0.1, zMin),
+          new THREE.Vector3(xMax, 2, zMax)
         )
       );
     }

@@ -29,7 +29,7 @@ export class GameStore {
     this.world = initData.world;
   }
 
-  getCurrentRoad() {
+  getCurrentRoad(): Road | undefined {
     const pz = this.player.object.position.z;
 
     return this.roads.find((road) => pz > road.zMax && pz < road.zMin);

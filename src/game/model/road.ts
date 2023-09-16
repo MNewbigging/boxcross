@@ -8,4 +8,5 @@ export interface Road {
   zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
   zLeftLane: number; // Where to spawn cars moving from left-right
   zRightLane: number; // Where to spawn cars moving from right-left
+  crossings: THREE.Box3[]; // bounds of any crossings on this road
 }

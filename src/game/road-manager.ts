@@ -25,12 +25,7 @@ export class RoadManager {
     this.events.fire("road-created", startingRoad);
 
     // Testing crossing bounds are correct
-    startingRoad.crossings.forEach((box2) => {
-      const box3 = new THREE.Box3(
-        new THREE.Vector3(box2.min.x, 0, box2.min.y),
-        new THREE.Vector3(box2.max.x, 2, box2.max.y)
-      );
-
+    startingRoad.crossings.forEach((box3) => {
       const helper = new THREE.Box3Helper(box3, new THREE.Color(0xff0000));
       scene.add(helper);
     });
@@ -54,6 +49,7 @@ export class RoadManager {
   update() {
     this.updateRoadsCrossed();
     this.updateRoadSpawns();
+    this.checkPlayerCrossing();
   }
 
   private getCurrentRoadIndexFor(objectPosition: number) {
@@ -144,8 +140,25 @@ export class RoadManager {
   }
 
   checkPlayerCrossing() {
+    const { player } = this.gameStore;
+
     // Get the current road
-    // Are there any crossings on this road?
-    // If so, is the player over one?
+    const currentRoad = this.gameStore.getCurrentRoad();
+    if (!currentRoad) {
+      return;
+    }
+
+    // Check every crossing
+    let overCrossing = false;
+    for (const crossingBounds of currentRoad.crossings) {
+      // If player position is in bounds, means at least half of box is within bounds
+      if (crossingBounds.containsPoint(player.object.position)) {
+        overCrossing = true;
+        break;
+      }
+    }
+
+    // Set player speed accordingly
+    //player.moveSpeed = overCrossing ? 20 : 5;
   }
 }
