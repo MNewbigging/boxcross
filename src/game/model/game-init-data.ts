@@ -51,12 +51,7 @@ export function createPlayer(loader: GameLoader): Player {
   const object = loader.modelLoader.get(ModelNames.PLAYER);
   object.scale.set(2, 2, 2);
 
-  return {
-    object,
-    cameraDistance: 0,
-    canMove: true,
-    activeEffects: [],
-  };
+  return new Player(object);
 }
 
 function createWorld(): World {

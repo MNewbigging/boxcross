@@ -7,6 +7,7 @@ import { KeyboardListener } from "../listeners/keyboard-listener";
 import { ModelNames } from "../loaders/model-loader";
 import { disposeObject, randomRange, randomRangeInt } from "../utils/utils";
 import { Road } from "./model/road";
+import { PlayerEffect } from "./model/player";
 
 interface Manhole {
   cover: THREE.Object3D;
@@ -149,7 +150,7 @@ export class ManholeManager {
 
     this.canInteract = false;
     this.inManhole = manhole;
-    player.canMove = false;
+    player.addActiveEffect(PlayerEffect.IN_MANHOLE);
 
     // Start the manhole cover flip animation
     const coverTimeline = gsap.timeline();
@@ -228,7 +229,7 @@ export class ManholeManager {
       z: targetPos.z,
       duration: 0.3,
       onComplete: () => {
-        player.canMove = true;
+        player.removeActiveEffect(PlayerEffect.IN_MANHOLE);
       },
     });
 

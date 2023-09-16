@@ -3,6 +3,7 @@ import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
 import { createPlayer } from "./model/game-init-data";
 import { disposeObject } from "../utils/utils";
+import { PlayerEffect } from "./model/player";
 
 export class PlayerManager {
   private moveSpeed = 15;
@@ -24,14 +25,23 @@ export class PlayerManager {
   }
 
   update(dt: number) {
-    const { player } = this.gameStore;
-
-    if (!player.canMove) {
+    if (!this.playerCanMove()) {
       return;
     }
 
     // Move per input
     this.inputMovement(dt);
+  }
+
+  private playerCanMove() {
+    const { player } = this.gameStore;
+
+    // Review active effects to determine if player can move at all
+    if (player.getActiveEffects().includes(PlayerEffect.IN_MANHOLE)) {
+      return false;
+    }
+
+    return true;
   }
 
   private inputMovement(dt: number) {
