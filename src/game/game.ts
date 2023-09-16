@@ -142,7 +142,6 @@ export class Game {
 
   private endGame() {
     this.gameOver = true;
-    // Fire game over event
     this.eventListener.fire("game-over", null);
   }
 

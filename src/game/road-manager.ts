@@ -6,7 +6,8 @@ import { RoadBuilder } from "../utils/road-builder";
 import { disposeObject } from "../utils/utils";
 
 export class RoadManager {
-  private readonly roadBuffer = 2; // How many roads must be ahead/behind player
+  private readonly roadAheadBuffer = 2;
+  private readonly roadBehindBuffer = 1;
 
   constructor(
     private gameStore: GameStore,
@@ -24,7 +25,7 @@ export class RoadManager {
     this.events.fire("road-created", startingRoad);
 
     // Then as many lanes as lane buffer dictates
-    for (let x = 0; x < this.roadBuffer; x++) {
+    for (let x = 0; x < this.roadAheadBuffer; x++) {
       this.spawnNextRoad();
     }
   }
@@ -35,10 +36,9 @@ export class RoadManager {
       this.gameStore.scene.remove(road.objects)
     );
     this.gameStore.roads = [];
-    this.gameStore.roadsCrossed = 0; // todo fire roads-crossed here?
+    this.gameStore.roadsCrossed = 0;
   }
 
-  // Check if roads need adding/removing in the scene as player moves
   update() {
     this.updateRoadsCrossed();
     this.updateRoadSpawns();
@@ -80,13 +80,14 @@ export class RoadManager {
 
     // If remaining roads ahead count is less than road buffer, spawn a lane
     const roadsAhead = roads.length - (currentRoadIndex + 1);
-    if (roadsAhead < this.roadBuffer) {
+    if (roadsAhead < this.roadAheadBuffer) {
       // Spawn the next lane
       this.spawnNextRoad();
     }
 
     // Only keep one previous road
-    if (currentRoadIndex >= 3) {
+    const roadsBehind = currentRoadIndex;
+    if (roadsBehind > this.roadBehindBuffer) {
       this.removeOldestRoad();
     }
   }
