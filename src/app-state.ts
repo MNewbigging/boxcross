@@ -5,26 +5,6 @@ import { EventListener } from "./listeners/event-listener";
 import { Game } from "./game/game";
 import { GameLoader } from "./loaders/game-loader";
 
-/**
- * For some reason, creating new Game instances does not overwrite - dupes are made.
- *
- * Need to separate observable state from the game:
- * - pass in the event listener to the game
- * - appState can listen for events and update observable props
- * - that way, those props are never reassigned when new game classes are made
- *
- * New thinking:
- *
- * Surely it's less performant to re-init the entire game rather than resetting values across numerous classes?
- *
- * - Benchmark memory usage before this refactor
- * -- 20 seconds, hit replay 3 times and played til next replay would show
- * -- heap usage 9.6mb - 18.1mb
- * - Never re-init the game class, only reset the game
- * - Benchmark again and compare
- *
- */
-
 export enum Screen {
   START = "start",
   GAME = "game",
@@ -50,15 +30,12 @@ export class AppState {
   }
 
   @action playGame = () => {
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    if (!canvas) {
-      console.error("could not find game canvas");
+    if (!this.canvas) {
       return;
     }
 
     // First stop the box scene
     if (this.boxScene) {
-      // todo proper disposal of this scene
       this.boxScene.stop();
       this.boxScene = undefined;
     }
@@ -67,7 +44,7 @@ export class AppState {
     this.assignEventListeners();
 
     // Then start the game
-    this.gameState = new Game(canvas, this.gameLoader, this.eventListener);
+    this.gameState = new Game(this.canvas, this.gameLoader, this.eventListener);
     this.currentScreen = Screen.GAME;
     this.gameState.startGame();
   };
@@ -99,8 +76,7 @@ export class AppState {
     this.setupBoxCanvas();
 
     // Game canvas would have mounted by now, get a ref to it
-    const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-    this.canvas = canvas;
+    this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
   };
 
   private setupBoxCanvas() {

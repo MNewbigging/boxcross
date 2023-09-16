@@ -15,7 +15,7 @@ export const GameOverScreen: React.FC<GameOverProps> = observer(
     return (
       <div className="game-over">
         <Button
-          className="replay"
+          className="replay-button"
           text="Replay"
           onClick={appState.replayGame}
         />

@@ -4,6 +4,7 @@ import { Power2, gsap } from "gsap";
 import { GameLoader } from "../loaders/game-loader";
 import { ModelNames } from "../loaders/model-loader";
 import { Renderer } from "./renderer";
+import { disposeObject } from "../utils/utils";
 
 export class BoxScene {
   private scene = new THREE.Scene();
@@ -67,9 +68,11 @@ export class BoxScene {
       cancelAnimationFrame(this.animRequestId);
     }
 
+    disposeObject(this.box);
     this.scene.remove(this.box);
 
-    console.log("box scene remaining info", this.renderer.renderer.info);
+    this.renderer.renderer.dispose();
+    this.renderer.renderer.renderLists.dispose();
   }
 
   private flipAnimation = () => {

@@ -84,11 +84,6 @@ export class Game {
   }
 
   resetGame() {
-    console.log(
-      "before reset: ",
-      this.renderer.renderer.info.memory.geometries
-    );
-
     // Set to default values to prepare for a brand new game
     this.gameOver = false;
 
@@ -129,7 +124,7 @@ export class Game {
 
     this.endGame();
 
-    // Squash the box
+    // Squash the box and zoom the camera to it
     camera.lookAt(player.object.position);
     gsap.to(player.object.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
     gsap.to(camera, {

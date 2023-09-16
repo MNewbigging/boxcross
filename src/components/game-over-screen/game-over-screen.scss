@@ -13,17 +13,19 @@
   justify-content: center;
   align-items: center;
 
-  .replay {
-    animation: fadeIn 1.5s linear both;
-    animation-delay: 1.5s;
+  .replay-button {
+    animation: fadeIn 1s linear both;
+    animation-delay: 2.1s;
   }
 }
 
 @keyframes fadeIn {
   0% {
     opacity: 0;
+    pointer-events: none;
   }
   100% {
     opacity: 0.7;
+    pointer-events: all;
   }
 }
