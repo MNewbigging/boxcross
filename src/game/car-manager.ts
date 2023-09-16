@@ -34,7 +34,10 @@ export class CarManager {
   reset() {
     // Clean up cars for new game
     this.roadSpawners.forEach((spawner: RoadSpawner) =>
-      spawner.cars.forEach((car) => this.gameStore.scene.remove(car.object))
+      spawner.cars.forEach((car) => {
+        disposeObject(car.object);
+        this.gameStore.scene.remove(car.object);
+      })
     );
 
     this.roadSpawners.clear();

@@ -8,14 +8,18 @@ import { ModelNames } from "../loaders/model-loader";
 import { Road } from "../utils/road-builder";
 import { disposeObject, randomRange, randomRangeInt } from "../utils/utils";
 
+interface Manhole {
+  cover: THREE.Object3D;
+  patch: THREE.Object3D;
+}
+
 export class ManholeManager {
   private inManhole?: THREE.Object3D;
   private canInteract = true; // False when manhole is animating, prevents layered/dupe animations
-  private manholes = new Map<string, THREE.Object3D[]>(); // road id to manhole objects array
-  private patches: THREE.Object3D[] = [];
+  private manholes = new Map<string, Manhole[]>(); // road id to manhole objects array
   private readonly minEnterDistance = 1;
   private readonly manholePosY = 0.02;
-  private readonly minManholeCount = 0;
+  private readonly minManholeCount = 1;
   private readonly maxManholeCount = 2;
 
   constructor(
@@ -32,9 +36,9 @@ export class ManholeManager {
     this.inManhole = undefined;
     this.canInteract = true;
 
-    this.manholes.forEach((manholes: THREE.Object3D[]) => {
-      manholes.forEach((manhole) => this.gameStore.scene.remove(manhole));
-    });
+    this.manholes.forEach((manholes: Manhole[]) =>
+      manholes.forEach((manhole) => this.removeManhole(manhole))
+    );
     this.manholes.clear();
   }
 
@@ -73,32 +77,28 @@ export class ManholeManager {
       manholePositions.push(position);
     }
 
-    const manholeCovers: THREE.Object3D[] = [];
+    // Create manholes at these positions
+    const manholes: Manhole[] = [];
     manholePositions.forEach((manholePosition) => {
-      // Add manholes to scene directly; keep track in this class for animating later
-      const manhole = modelLoader.get(ModelNames.MANHOLE_COVER);
-      manhole.position.copy(manholePosition);
-      scene.add(manhole);
+      // Manhole cover
+      const cover = modelLoader.get(ModelNames.MANHOLE_COVER);
+      cover.position.copy(manholePosition);
+      scene.add(cover);
 
-      // Add patches to road objects so they are removed from scene together
+      // Manhole patch (the shadow / hole underneath the cover)
       const patch = modelLoader.get(ModelNames.MANHOLE_PATCH);
       patch.position.copy(manholePosition);
-      road.objects.add(patch);
+      scene.add(patch);
 
-      manholeCovers.push(manhole);
+      // Track all manholes made for later removal
+      manholes.push({
+        cover,
+        patch,
+      });
     });
 
     // Keep track of all manhole covers added so we can animate them
-    this.manholes.set(road.id, manholeCovers);
-  };
-
-  private onRoadRemoved = (road: Road) => {
-    const { scene } = this.gameStore;
-
-    // If there were manholes on this road, remove their refs
-    const manholes = this.manholes.get(road.id) ?? [];
-    scene.remove(...manholes);
-    this.manholes.delete(road.id);
+    this.manholes.set(road.id, manholes);
   };
 
   update() {
@@ -136,10 +136,10 @@ export class ManholeManager {
     for (const manhole of roadManholes) {
       // When the plyer is within a certain distance
       if (
-        manhole.position.distanceTo(player.object.position) <
+        manhole.cover.position.distanceTo(player.object.position) <
         this.minEnterDistance
       ) {
-        this.enterManhole(manhole);
+        this.enterManhole(manhole.cover);
       }
     }
   }
@@ -233,5 +233,18 @@ export class ManholeManager {
     });
 
     this.inManhole = undefined;
+  }
+
+  private onRoadRemoved = (road: Road) => {
+    // If there were manholes on this road, remove them
+    const manholes = this.manholes.get(road.id) ?? [];
+    manholes.forEach((manhole) => this.removeManhole(manhole));
+    this.manholes.delete(road.id);
+  };
+
+  private removeManhole(manhole: Manhole) {
+    disposeObject(manhole.cover);
+    disposeObject(manhole.patch);
+    this.gameStore.scene.remove(manhole.cover, manhole.patch);
   }
 }

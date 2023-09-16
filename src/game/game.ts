@@ -87,7 +87,7 @@ export class Game {
     // Set to default values to prepare for a brand new game
     this.gameOver = false;
 
-    disposeObject(this.gameStore.scene);
+    //disposeObject(this.gameStore.scene); // For blunt-force-removal!
 
     // Manager resets
     this.playerManager.reset();
@@ -98,7 +98,10 @@ export class Game {
 
     cancelAnimationFrame(this.animRequestId);
 
-    console.log("after reset:", this.renderer.renderer.info.memory.geometries);
+    console.log(
+      "Geometries left after reset:",
+      this.renderer.renderer.info.memory.geometries
+    );
 
     // Run setup again
     this.setupGame();

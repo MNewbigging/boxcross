@@ -15,6 +15,7 @@ export class PlayerManager {
 
   reset() {
     // Remove the player from the scene
+    disposeObject(this.gameStore.player.object);
     this.gameStore.scene.remove(this.gameStore.player.object);
 
     // Create a new player

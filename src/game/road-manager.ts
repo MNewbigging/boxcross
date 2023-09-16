@@ -32,9 +32,10 @@ export class RoadManager {
 
   reset() {
     // Clear all the roads in the game
-    this.gameStore.roads.forEach((road) =>
-      this.gameStore.scene.remove(road.objects)
-    );
+    this.gameStore.roads.forEach((road) => {
+      disposeObject(road.objects);
+      this.gameStore.scene.remove(road.objects);
+    });
     this.gameStore.roads = [];
     this.gameStore.roadsCrossed = 0;
   }
