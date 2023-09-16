@@ -10,8 +10,10 @@
   animation-delay: 0.5s;
 
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 30px;
 
   .replay-button {
     animation: fadeIn 1s linear both;
