@@ -7,7 +7,7 @@ import { PlayerEffect } from "./model/player";
 
 export class PlayerManager {
   private moveSpeedNormal = 15;
-  private moveSpeedCrossingAdd = 15;
+  private moveSpeedCrossingMultiplier = 1.5;
   private readonly maxUpperMovement = 24; // Measured against player.cameraDistance to prevent moving up offscreen
 
   constructor(
@@ -54,7 +54,7 @@ export class PlayerManager {
 
     // Check for crossing effect
     if (player.hasActiveEffect(PlayerEffect.ON_CROSSING)) {
-      moveSpeed += this.moveSpeedCrossingAdd;
+      moveSpeed *= this.moveSpeedCrossingMultiplier;
     }
 
     return moveSpeed;

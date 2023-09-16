@@ -25,12 +25,6 @@ export class RoadManager {
     scene.add(startingRoad.objects);
     this.events.fire("road-created", startingRoad);
 
-    // Testing crossing bounds are correct
-    startingRoad.crossings.forEach((box3) => {
-      const helper = new THREE.Box3Helper(box3, new THREE.Color(0xff0000));
-      scene.add(helper);
-    });
-
     // Then as many lanes as lane buffer dictates
     for (let x = 0; x < this.roadAheadBuffer; x++) {
       this.spawnNextRoad();

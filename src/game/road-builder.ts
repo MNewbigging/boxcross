@@ -64,8 +64,8 @@ export class RoadBuilder {
         continue;
       }
 
-      const xMin = i * ITEM_WIDTH;
-      const xMax = xMin + ITEM_WIDTH;
+      const xMin = i * ITEM_WIDTH + 0.9; // adjusting x edges here so it sits inside outer lines
+      const xMax = xMin + ITEM_WIDTH - 1.9;
       const zMin = zPos - 15;
       const zMax = zPos - 5;
 
