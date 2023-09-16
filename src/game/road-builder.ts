@@ -11,6 +11,7 @@ export interface Road {
   zMax: number; // Farthest z value (will be a smaller number since travelling negatively)
   zLeftLane: number; // Where to spawn cars moving from left-right
   zRightLane: number; // Where to spawn cars moving from right-left
+  crossings: THREE.Box2[]; // bounds of any crossings on this road
 }
 
 enum RoadColumnType {
@@ -40,9 +41,15 @@ export class RoadBuilder {
   }
 
   buildRoad(zPos: number, index: number) {
-    // Create the objects for the road and position them
-    const objects = this.buildRoadObjects();
+    // A new road needs a random new schema
+    const schema = this.getRoadSchema();
+
+    // Create the objects per schema and position them
+    const objects = this.buildRoadObjects(schema);
     objects.position.z = zPos;
+
+    // Pull out any bounds for road crossings
+    const crossings = this.getSchemaCrossingBounds(schema, zPos);
 
     // Road data
     const road: Road = {
@@ -53,16 +60,38 @@ export class RoadBuilder {
       zMax: zPos - ROAD_DEPTH,
       zLeftLane: zPos - this.leftLaneOffset,
       zRightLane: zPos - this.rightLaneOffset,
+      crossings,
     };
 
     return road;
   }
 
-  private buildRoadObjects() {
-    const roadGroup = new THREE.Group();
+  private getSchemaCrossingBounds(schema: RoadColumnType[], zPos: number) {
+    const crossingBounds: THREE.Box2[] = [];
 
-    // Get the road schema
-    const schema = this.getRoadSchema();
+    for (let i = 0; i < schema.length; i++) {
+      if (schema[i] !== RoadColumnType.CROSSING) {
+        continue;
+      }
+
+      const xMin = i * ITEM_WIDTH;
+      const xMax = xMin + ITEM_WIDTH;
+      const zMin = zPos - 15;
+      const zMax = zPos - 5;
+
+      crossingBounds.push(
+        new THREE.Box2(
+          new THREE.Vector2(xMin, zMin),
+          new THREE.Vector2(xMax, zMax)
+        )
+      );
+    }
+
+    return crossingBounds;
+  }
+
+  private buildRoadObjects(schema: RoadColumnType[]) {
+    const roadGroup = new THREE.Group();
 
     // Build it
     schema.forEach((columnType: RoadColumnType, index: number) => {
@@ -119,7 +148,7 @@ export class RoadBuilder {
     return validIndices;
   }
 
-  private getRoadSchema() {
+  private getRoadSchema(): RoadColumnType[] {
     // Start with all basic columns
     const schema: RoadColumnType[] = Array(COL_COUNT).fill(
       RoadColumnType.BASIC
