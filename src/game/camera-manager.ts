@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 
@@ -8,6 +9,15 @@ export class CameraManager {
   private cameraMoveSpeed = 5;
 
   constructor(private gameStore: GameStore, private events: EventListener) {}
+
+  static createCamera(canvas: HTMLCanvasElement) {
+    return new THREE.PerspectiveCamera(
+      45, // 85 good for debug,
+      canvas.clientWidth / canvas.clientHeight,
+      0.1,
+      1000
+    );
+  }
 
   setup() {
     const { camera, world } = this.gameStore;

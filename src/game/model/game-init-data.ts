@@ -5,6 +5,7 @@ import { GameLoader } from "../../loaders/game-loader";
 import { ModelNames } from "../../loaders/model-loader";
 import { Player } from "./player";
 import { World } from "./world";
+import { CameraManager } from "../camera-manager";
 
 // The starting properties of the game, passed to store on init to ensure all are defined throughout
 export interface GameInitData {
@@ -24,19 +25,10 @@ export function createInitData(
     canvas,
     loader,
     scene: createScene(),
-    camera: createCamera(canvas),
+    camera: CameraManager.createCamera(canvas),
     player: createPlayer(loader),
     world: createWorld(),
   };
-}
-
-function createCamera(canvas: HTMLCanvasElement) {
-  return new THREE.PerspectiveCamera(
-    95, // 85 good for debug,
-    canvas.clientWidth / canvas.clientHeight,
-    0.1,
-    1000
-  );
 }
 
 function createScene() {

@@ -164,11 +164,10 @@ export class Game {
 
     const dt = this.clock.getDelta();
 
-    // Always updating
     const checkCollisions = !this.gameOver && !this.introManager.introRunning;
+
     this.carManager.update(dt, checkCollisions);
 
-    // While game is active
     if (checkCollisions) {
       this.roadManager.update();
       this.playerManager.update(dt);

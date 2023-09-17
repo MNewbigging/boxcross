@@ -120,25 +120,16 @@ export class IntroManager {
     const { player } = this.gameStore;
 
     const tl = gsap.timeline();
-    // tl.fromTo(
-    //   player.object.position,
-    //   {
-    //     x: 34,
-    //     y: 2,
-    //     z: -7.5,
-    //   },
-    //   {
-    //     x: 40,
-    //     duration: 1,
-    //   }
-    // );
-
     tl.to(player.object.position, {
       x: 40,
       duration: 1,
       onStart: () => {
         player.object.position.set(34, 2, -7.5);
       },
+    });
+    tl.to(player.object.position, {
+      y: 0.01,
+      duration: 0.5,
     });
 
     return tl;
