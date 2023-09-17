@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Back, Elastic, Linear, Power2, Power3, gsap } from "gsap";
+import { Back, Elastic, Power1, Power3, gsap } from "gsap";
 
 import { GameStore } from "./game-store";
 import { ModelNames } from "../loaders/model-loader";
@@ -60,14 +60,14 @@ export class IntroManager {
 
     const master = gsap.timeline({ onComplete: this.onIntroComplete });
     master.add(this.vanDriveIn(this.van));
-    master.add(this.cameraZoomIn());
-    master.add(this.vanDoorsOpen(this.leftDoor, this.rightDoor));
-    master.add(this.boxFall());
+    master.add(this.cameraZoomIn(), ">-1");
+    master.add(this.vanDoorsOpen(this.leftDoor, this.rightDoor), ">-0.25");
+    master.add(this.boxFall(), ">-1");
     master.add(this.vanDoorsClose(this.leftDoor, this.rightDoor));
-    master.add(this.cameraZoomOut());
-    master.add(this.carDriveOut(this.suv));
-    master.add(this.carDriveOut(this.taxi));
-    master.add(this.carDriveOut(this.van));
+    master.add(this.cameraZoomOut(), ">-0.75");
+    master.add(this.carDriveOut(this.suv), "<");
+    master.add(this.carDriveOut(this.taxi), "<1");
+    master.add(this.carDriveOut(this.van), "<1");
   }
 
   private readonly onIntroComplete = () => {
@@ -99,10 +99,12 @@ export class IntroManager {
   }
 
   private vanDriveIn(van: THREE.Object3D) {
+    const duration = 1;
     const tl = gsap.timeline();
     tl.to(van.position, {
       x: 32,
-      duration: 2,
+      duration,
+      ease: Power1.easeOut,
     });
 
     return tl;
@@ -111,10 +113,11 @@ export class IntroManager {
   private cameraZoomIn() {
     const { camera, world } = this.gameStore;
 
+    const duration = 1.5;
     const tl = gsap.timeline();
     tl.to(camera, {
       zoom: 1.5,
-      duration: 2,
+      duration,
       ease: Power3.easeInOut,
       onUpdate: () => {
         camera.updateProjectionMatrix();
@@ -124,7 +127,7 @@ export class IntroManager {
       camera.position,
       {
         x: world.xMid + 5,
-        duration: 2,
+        duration,
         ease: Power3.easeInOut,
       },
       "<"
@@ -197,10 +200,11 @@ export class IntroManager {
   private cameraZoomOut() {
     const { camera, world } = this.gameStore;
 
+    const duration = 1;
     const tl = gsap.timeline();
     tl.to(camera, {
       zoom: 1,
-      duration: 2,
+      duration,
       ease: Power3.easeInOut,
       onUpdate: () => {
         camera.updateProjectionMatrix();
@@ -210,7 +214,7 @@ export class IntroManager {
       camera.position,
       {
         x: world.xMid,
-        duration: 2,
+        duration,
         ease: Power3.easeInOut,
       },
       "<"
@@ -222,10 +226,11 @@ export class IntroManager {
   private carDriveOut(car: THREE.Object3D) {
     const { world } = this.gameStore;
 
+    const duration = 1;
     const tl = gsap.timeline();
     tl.to(car.position, {
       x: world.xMin,
-      duration: 2,
+      duration,
       ease: "Back.easeIn(0.5)",
     });
 
