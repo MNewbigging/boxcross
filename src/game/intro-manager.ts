@@ -43,7 +43,13 @@ export class IntroManager {
   }
 
   startIntro() {
-    if (!this.van || !this.leftDoor || !this.rightDoor) {
+    if (
+      !this.van ||
+      !this.leftDoor ||
+      !this.rightDoor ||
+      !this.suv ||
+      !this.taxi
+    ) {
       return;
     }
 
@@ -52,8 +58,13 @@ export class IntroManager {
     const master = gsap.timeline();
     master.add(this.vanDriveIn(this.van));
     master.add(this.cameraZoomIn());
-    master.add(this.vanDoors(this.leftDoor, this.rightDoor));
+    master.add(this.vanDoorsOpen(this.leftDoor, this.rightDoor));
     master.add(this.boxFall());
+    master.add(this.cameraZoomOut());
+    master.add(this.carDriveOut(this.suv));
+    master.add(this.carDriveOut(this.taxi));
+    master.add(this.vanDoorsClose(this.leftDoor, this.rightDoor));
+    master.add(this.carDriveOut(this.van));
   }
 
   private vanDriveIn(van: THREE.Object3D) {
@@ -91,12 +102,9 @@ export class IntroManager {
     return tl;
   }
 
-  private vanDoors(leftDoor: THREE.Object3D, rightDoor: THREE.Object3D) {
+  private vanDoorsOpen(leftDoor: THREE.Object3D, rightDoor: THREE.Object3D) {
     // Get the back right door of the van
     const doorsTimeline = gsap.timeline();
-
-    const rightStartRot = rightDoor.rotation.y;
-    const leftStartRot = leftDoor.rotation.y;
 
     doorsTimeline.to(rightDoor.rotation, {
       y: rightDoor.rotation.y + Math.PI / 2 + 0.2,
@@ -133,5 +141,64 @@ export class IntroManager {
     });
 
     return tl;
+  }
+
+  private cameraZoomOut() {
+    const { camera, world } = this.gameStore;
+
+    const tl = gsap.timeline();
+    tl.to(camera, {
+      zoom: 1,
+      duration: 2,
+      ease: Power3.easeInOut,
+      onUpdate: () => {
+        camera.updateProjectionMatrix();
+      },
+    });
+    tl.to(
+      camera.position,
+      {
+        x: world.xMid,
+        duration: 2,
+        ease: Power3.easeInOut,
+      },
+      "<"
+    );
+
+    return tl;
+  }
+
+  private carDriveOut(car: THREE.Object3D) {
+    const { world } = this.gameStore;
+
+    const tl = gsap.timeline();
+    tl.to(car.position, {
+      x: world.xMin,
+      duration: 2,
+      ease: Power2.easeIn,
+    });
+
+    return tl;
+  }
+
+  private vanDoorsClose(leftDoor: THREE.Object3D, rightDoor: THREE.Object3D) {
+    // Get the back right door of the van
+    const doorsTimeline = gsap.timeline();
+    doorsTimeline.to(rightDoor.rotation, {
+      y: 0,
+      duration: 0.1,
+      ease: Linear.easeIn,
+    });
+    doorsTimeline.to(
+      leftDoor.rotation,
+      {
+        y: 0,
+        duration: 0.1,
+        ease: Linear.easeIn,
+      },
+      "<"
+    );
+
+    return doorsTimeline;
   }
 }

@@ -12,7 +12,7 @@ export class CameraManager {
 
   static createCamera(canvas: HTMLCanvasElement) {
     return new THREE.PerspectiveCamera(
-      45, // 85 good for debug,
+      95, // 85 good for debug,
       canvas.clientWidth / canvas.clientHeight,
       0.1,
       1000
