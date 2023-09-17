@@ -66,8 +66,8 @@ export class IntroManager {
     master.add(this.vanDoorsClose(this.leftDoor, this.rightDoor));
     master.add(this.cameraZoomOut(), ">-0.75");
     master.add(this.carDriveOut(this.suv), "<");
-    master.add(this.carDriveOut(this.taxi), "<1");
-    master.add(this.carDriveOut(this.van), "<1");
+    master.add(this.carDriveOut(this.taxi), "<0.6");
+    master.add(this.carDriveOut(this.van), "<0.8");
   }
 
   private readonly onIntroComplete = () => {
