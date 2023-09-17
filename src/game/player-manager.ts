@@ -102,8 +102,15 @@ export class PlayerManager {
     }
 
     // Collision detection against stationary objects
+    const colliding = this.collidesWithProp(this.nextMovePos);
 
     // Move to the next position
-    player.object.position.copy(this.nextMovePos);
+    if (!colliding) {
+      player.object.position.copy(this.nextMovePos);
+    }
+  }
+
+  private collidesWithProp(nextPos: THREE.Vector3) {
+    return false;
   }
 }

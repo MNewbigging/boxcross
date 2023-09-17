@@ -110,6 +110,7 @@ export class Game {
     this.carManager.reset();
     this.cameraManager.reset();
     this.manholeManager.reset();
+    this.streetLightManager.reset();
 
     cancelAnimationFrame(this.animRequestId);
 

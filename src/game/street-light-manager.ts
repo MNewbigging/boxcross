@@ -17,6 +17,19 @@ export class StreetLightManager {
     events.on("road-removed", this.onRoadRemoved);
   }
 
+  reset() {
+    const { scene } = this.gameStore;
+
+    this.streetLights.forEach((lights: THREE.Object3D[]) =>
+      lights.forEach((light) => {
+        disposeObject(light);
+        scene.remove(light);
+      })
+    );
+
+    this.streetLights.clear();
+  }
+
   private readonly onRoadCreated = (road: Road) => {
     const { scene } = this.gameStore;
     const { modelLoader } = this.gameStore.loader;
