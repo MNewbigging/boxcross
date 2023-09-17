@@ -77,6 +77,10 @@ export class ModelLoader {
           // Kenney assets need their metalness reducing to render correctly
           const mat = node.material as THREE.MeshStandardMaterial;
           mat.metalness = 0;
+
+          // Shadows
+          node.castShadow = true;
+          node.receiveShadow = true;
         }
       });
 
@@ -111,21 +115,6 @@ export class ModelLoader {
   private loadModels() {
     const gltfLoader = new GLTFLoader(this.loadingManager);
 
-    // const boxUrl = new URL("/box-small.glb", import.meta.url).href;
-    // gltfLoader.load(boxUrl, (gltf) => {
-    //   // Traverse the gltf scene
-    //   gltf.scene.traverse((child) => {
-    //     const node = child as THREE.Mesh;
-    //     if (node.isMesh) {
-    //       // Kenney assets need their metalness reducing to render correctly
-    //       const mat = node.material as THREE.MeshStandardMaterial;
-    //       mat.metalness = 0;
-    //     }
-    //   });
-
-    //   this.models.set("box", gltf.scene);
-    // });
-
     const boxCrossUrl = new URL("/boxCross.glb", import.meta.url).href;
     gltfLoader.load(boxCrossUrl, (gltf) => {
       const parent = gltf.scene;
@@ -134,11 +123,47 @@ export class ModelLoader {
       Object.values(ModelNames).forEach((name) => {
         const object = parent.getObjectByName(name);
         if (object) {
+          // Set shadows per object
+          switch (name) {
+            case ModelNames.ROAD:
+            case ModelNames.ROAD_ALT:
+            case ModelNames.ROAD_CROSSING:
+            case ModelNames.PAVEMENT:
+            case ModelNames.PAVEMENT_ALT:
+            case ModelNames.PAVEMENT_DIP:
+            case ModelNames.PAVEMENT_DRAIN:
+            case ModelNames.PAVEMENT_GRATE:
+            case ModelNames.PAVEMENT_PANEL:
+              this.setShadows(object, false, true);
+              break;
+            case ModelNames.CAR_AMBULANCE:
+            case ModelNames.CAR_HATCH:
+            case ModelNames.CAR_MUSCLE:
+            case ModelNames.CAR_POLICE:
+            case ModelNames.CAR_SEDAN:
+            case ModelNames.CAR_SUV:
+            case ModelNames.CAR_TAXI:
+            case ModelNames.CAR_VAN:
+              this.setShadows(object, true, true);
+              break;
+            case ModelNames.STREET_LIGHT:
+              this.setShadows(object, true, false);
+              break;
+          }
+
+          // Save model in the map
           this.models.set(name, object);
         }
       });
 
       this.models.set("box-cross", gltf.scene);
+    });
+  }
+
+  private setShadows(object: THREE.Object3D, cast: boolean, receive: boolean) {
+    object.traverse((child) => {
+      child.castShadow = cast;
+      child.receiveShadow = receive;
     });
   }
 }

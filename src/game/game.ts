@@ -79,7 +79,19 @@ export class Game {
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
     const directLight = new THREE.DirectionalLight();
-    this.gameStore.scene.add(ambientLight, directLight);
+    directLight.castShadow = true;
+
+    directLight.position.set(0, 1, 0);
+    directLight.shadow.camera.top = 100;
+    directLight.shadow.camera.right = this.gameStore.world.xMax;
+    directLight.shadow.camera.bottom = -1.5;
+    directLight.shadow.camera.far = 30;
+
+    directLight.target.position.set(0, 0, -10);
+
+    const helper = new THREE.CameraHelper(directLight.shadow.camera);
+
+    this.gameStore.scene.add(directLight, directLight.target, helper);
 
     // Listeners
     this.eventListener.on("player-hit-car", this.onPlayerHitCar);
