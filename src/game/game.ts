@@ -18,7 +18,7 @@ import { IntroManager } from "./intro-manager";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  usingIntro = true;
+  usingIntro = false;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();
@@ -116,8 +116,6 @@ export class Game {
   }
 
   private setupGame() {
-    const { world, player } = this.gameStore;
-
     this.playerManager.setup();
     this.cameraManager.setup();
 
@@ -129,6 +127,7 @@ export class Game {
       this.introManager.setupIntro();
     } else {
       // Place player if not using intro
+      const { world, player } = this.gameStore;
       player.object.position.set(world.xMid, 0.01, -2.5);
     }
   }
