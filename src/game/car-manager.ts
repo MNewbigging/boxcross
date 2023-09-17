@@ -43,7 +43,7 @@ export class CarManager {
     this.roadSpawners.clear();
   }
 
-  update(dt: number, gameOver: boolean) {
+  update(dt: number, checkCollisions: boolean) {
     const { roads } = this.gameStore;
 
     // Update cars by road even if game is over
@@ -62,7 +62,7 @@ export class CarManager {
     });
 
     // Check for player-car collisions so long as game still going
-    if (!gameOver) {
+    if (checkCollisions) {
       this.checkPlayerCollision();
     }
   }

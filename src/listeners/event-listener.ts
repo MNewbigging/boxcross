@@ -34,6 +34,7 @@ export class EventListener {
   }
 
   fire<E extends keyof EventMap>(type: E, event: EventMap[E]) {
+    //console.log("Firing event: ", type);
     const callbacks = this.events.get(type) ?? [];
     callbacks.forEach((cb) => cb(event));
   }
