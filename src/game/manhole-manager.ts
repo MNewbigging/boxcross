@@ -58,7 +58,7 @@ export class ManholeManager {
   }
 
   private onRoadCreated = (road: Road) => {
-    const { loader, scene, world } = this.gameStore;
+    const { loader, scene } = this.gameStore;
     const { modelLoader } = loader;
 
     // Decide how many manholes to create

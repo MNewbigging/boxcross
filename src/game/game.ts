@@ -15,11 +15,12 @@ import { RoadManager } from "./road-manager";
 import { createInitData } from "./model/game-init-data";
 import { IntroManager } from "./intro-manager";
 import { disposeObject } from "../utils/utils";
+import { StreetLightManager } from "./street-light-manager";
 
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  showIntro = true;
+  showIntro = false;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();
@@ -34,6 +35,7 @@ export class Game {
   private cameraManager: CameraManager;
   private manholeManager: ManholeManager;
   private introManager: IntroManager;
+  private streetLightManager: StreetLightManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -69,6 +71,10 @@ export class Game {
       this.keyboardListener
     );
     this.introManager = new IntroManager(this.gameStore);
+    this.streetLightManager = new StreetLightManager(
+      this.gameStore,
+      this.eventListener
+    );
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
