@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
-import { disposeObject, randomRange } from "../utils/utils";
+import { disposeObject, getCarWheels, randomRange } from "../utils/utils";
 
 interface RoadSpawner {
   leftLaneSpawnTimer: number; // tracks time since last spawn
@@ -19,6 +19,7 @@ interface Car {
   object: THREE.Object3D;
   speed: number;
   direction: number; // 1 for right, -1 for left
+  wheels: THREE.Object3D[];
 }
 
 export class CarManager {
@@ -109,11 +110,15 @@ export class CarManager {
       carObject.position.set(0, 0, road.zLeftLane);
     }
 
+    // Get the car wheels
+    const wheels = getCarWheels(carObject, carName);
+
     // Create car data
     const car: Car = {
       object: carObject,
       speed,
       direction,
+      wheels,
     };
 
     // Add car to the scene
@@ -130,6 +135,10 @@ export class CarManager {
     spawner.cars.forEach((car) => {
       // Drive them along the road
       car.object.position.x += car.speed * dt * car.direction;
+      // Rotate the wheels
+      car.wheels.forEach((wheel) => {
+        wheel.rotation.x += car.speed * dt;
+      });
 
       // Check against bounds
       if (car.object.position.x > world.xMax || car.object.position.x < 0) {

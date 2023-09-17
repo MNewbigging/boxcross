@@ -50,3 +50,28 @@ export function disposeObject(object: THREE.Object3D) {
     }
   });
 }
+
+// Name in format: car-type
+export function getCarWheels(
+  car: THREE.Object3D,
+  name: string
+): THREE.Object3D[] {
+  // The four wheel names
+  const wheelNames = [
+    `${name}-wheel-fl`,
+    `${name}-wheel-fr`,
+    `${name}-wheel-rl`,
+    `${name}-wheel-rr`,
+  ];
+
+  // Get each wheel
+  const wheels: THREE.Object3D[] = [];
+  wheelNames.forEach((name) => {
+    const wheel = car.getObjectByName(name);
+    if (wheel) {
+      wheels.push(wheel);
+    }
+  });
+
+  return wheels;
+}
