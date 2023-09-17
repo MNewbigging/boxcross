@@ -6,28 +6,45 @@
   right: 0;
 
   background-color: #1c2127;
-  animation: fadeIn 1.5s linear both;
+  animation: bgFadeIn 1.5s linear both;
   animation-delay: 0.5s;
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   gap: 30px;
 
-  .replay-button {
-    animation: fadeIn 1s linear both;
+  .game-over-panel {
+    margin-top: 50px;
+
+    animation: panelFadeIn 1s linear both;
     animation-delay: 2.1s;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
   }
 }
 
-@keyframes fadeIn {
+@keyframes bgFadeIn {
   0% {
-    opacity: 0;
+    background-color: rgba($color: #1c2127, $alpha: 0);
     pointer-events: none;
   }
   100% {
-    opacity: 0.7;
+    background-color: rgba($color: #1c2127, $alpha: 0.7);
     pointer-events: all;
+  }
+}
+
+@keyframes panelFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

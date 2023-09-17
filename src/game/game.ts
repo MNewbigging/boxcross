@@ -18,7 +18,7 @@ import { IntroManager } from "./intro-manager";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  usingIntro = true;
+  showIntro = true;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();
@@ -84,7 +84,7 @@ export class Game {
 
   startGame() {
     // Start the intro cutscene
-    if (this.usingIntro) {
+    if (this.showIntro) {
       this.introManager.startIntro();
     }
 
@@ -123,7 +123,7 @@ export class Game {
     this.roadManager.buildStartingRoads();
 
     // Different setup depending on if running intro
-    if (this.usingIntro) {
+    if (this.showIntro) {
       this.introManager.setupIntro();
     } else {
       // Place player if not using intro

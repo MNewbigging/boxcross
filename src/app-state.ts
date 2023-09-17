@@ -16,6 +16,7 @@ export class AppState {
   @observable currentScreen = Screen.START;
   @observable canStart = false;
   @observable roadsCrossed = 0;
+  @observable showIntro = true;
 
   private gameState?: Game;
   private canvas?: HTMLCanvasElement;
@@ -28,6 +29,13 @@ export class AppState {
 
     this.loadGame();
   }
+
+  @action toggleSkipIntro = () => {
+    this.showIntro = !this.showIntro;
+    if (this.gameState) {
+      this.gameState.showIntro = this.showIntro;
+    }
+  };
 
   @action playGame = () => {
     if (!this.canvas) {
