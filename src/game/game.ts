@@ -116,11 +116,10 @@ export class Game {
   }
 
   private setupGame() {
-    const { scene, camera, world, player } = this.gameStore;
+    const { world, player } = this.gameStore;
 
-    // Position camera
-    camera.position.set(world.xMid, 30, 0);
-    camera.lookAt(world.xMid, 0, -10);
+    this.playerManager.setup();
+    this.cameraManager.setup();
 
     // Build the starting roads
     this.roadManager.buildStartingRoads();
@@ -131,7 +130,6 @@ export class Game {
     } else {
       // Place player if not using intro
       player.object.position.set(world.xMid, 0.01, -2.5);
-      scene.add(player.object);
     }
   }
 
@@ -166,10 +164,11 @@ export class Game {
 
     const dt = this.clock.getDelta();
 
-    // Update managers
+    // Always updating
     this.carManager.update(dt, this.gameOver);
 
-    if (!this.gameOver) {
+    // While game is active
+    if (!this.gameOver || this.introManager.introRunning) {
       this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);

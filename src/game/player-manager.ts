@@ -16,13 +16,22 @@ export class PlayerManager {
     private events: EventListener
   ) {}
 
+  setup() {
+    const { scene, world } = this.gameStore;
+
+    // Create a new player, add to scene but off-screen for now
+    const newPlayer = createPlayer(this.gameStore.loader);
+    newPlayer.object.position.set(world.xMid, 0.01, 20);
+    this.gameStore.player = newPlayer;
+    scene.add(this.gameStore.player.object);
+  }
+
   reset() {
+    const { scene } = this.gameStore;
+
     // Remove the player from the scene
     disposeObject(this.gameStore.player.object);
-    this.gameStore.scene.remove(this.gameStore.player.object);
-
-    // Create a new player
-    this.gameStore.player = createPlayer(this.gameStore.loader);
+    scene.remove(this.gameStore.player.object);
   }
 
   update(dt: number) {

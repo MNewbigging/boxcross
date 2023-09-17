@@ -9,6 +9,14 @@ export class CameraManager {
 
   constructor(private gameStore: GameStore, private events: EventListener) {}
 
+  setup() {
+    const { camera, world } = this.gameStore;
+
+    // Starting position
+    camera.position.set(world.xMid, 30, 0);
+    camera.lookAt(world.xMid, 0, -10);
+  }
+
   reset() {
     this.outOfViewTimer = 0;
     this.gameStore.camera.zoom = 1;

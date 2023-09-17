@@ -5,17 +5,15 @@ import { GameStore } from "./game-store";
 import { ModelNames } from "../loaders/model-loader";
 
 export class IntroManager {
+  introRunning = false;
+
   private suv?: THREE.Object3D;
   private taxi?: THREE.Object3D;
   private van?: THREE.Object3D;
   private rightDoor?: THREE.Object3D;
   private leftDoor?: THREE.Object3D;
 
-  constructor(private gameStore: GameStore) {
-    // Van doors
-    // this.rightDoor = this.van.getObjectByName("SM_Veh_Car_Van_Door_r001");
-    // this.leftDoor = this.van.getObjectByName("SM_Veh_Car_Van_Door_l001");
-  }
+  constructor(private gameStore: GameStore) {}
 
   setupIntro() {
     const { scene, world } = this.gameStore;
@@ -45,13 +43,17 @@ export class IntroManager {
   }
 
   startIntro() {
-    if (!this.van || !this.rightDoor) {
+    if (!this.van || !this.leftDoor || !this.rightDoor) {
       return;
     }
+
+    this.introRunning = true;
 
     const master = gsap.timeline();
     master.add(this.vanDriveIn(this.van));
     master.add(this.cameraZoomIn());
+    master.add(this.vanDoors(this.leftDoor, this.rightDoor));
+    master.add(this.boxFall());
   }
 
   private vanDriveIn(van: THREE.Object3D) {
@@ -89,10 +91,7 @@ export class IntroManager {
     return tl;
   }
 
-  private getDoorsTimeline(
-    leftDoor: THREE.Object3D,
-    rightDoor: THREE.Object3D
-  ) {
+  private vanDoors(leftDoor: THREE.Object3D, rightDoor: THREE.Object3D) {
     // Get the back right door of the van
     const doorsTimeline = gsap.timeline();
 
@@ -101,29 +100,39 @@ export class IntroManager {
 
     doorsTimeline.to(rightDoor.rotation, {
       y: rightDoor.rotation.y + Math.PI / 2 + 0.2,
-      duration: 0.4,
+      duration: 0.1,
+      ease: Linear.easeIn,
     });
     doorsTimeline.to(
       leftDoor.rotation,
       {
-        y: leftDoor.rotation.y - Math.PI / 2 + 0.2,
-        duration: 0.4,
-      },
-      "<"
-    );
-    doorsTimeline.to(rightDoor.rotation, {
-      y: rightStartRot,
-      duration: 0.4,
-    });
-    doorsTimeline.to(
-      leftDoor.rotation,
-      {
-        y: leftStartRot,
-        duration: 0.4,
+        y: leftDoor.rotation.y - Math.PI / 2 - 0.2,
+        duration: 0.1,
+        ease: Linear.easeIn,
       },
       "<"
     );
 
     return doorsTimeline;
+  }
+
+  private boxFall() {
+    const { player } = this.gameStore;
+
+    const tl = gsap.timeline();
+    tl.fromTo(
+      player.object.position,
+      {
+        x: 34,
+        y: 2,
+        z: -7.5,
+      },
+      {
+        x: 40,
+        duration: 1,
+      }
+    );
+
+    return tl;
   }
 }
