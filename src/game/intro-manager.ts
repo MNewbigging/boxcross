@@ -3,6 +3,7 @@ import { Linear, Power2, Power3, gsap } from "gsap";
 
 import { GameStore } from "./game-store";
 import { ModelNames } from "../loaders/model-loader";
+import { disposeObject } from "../utils/utils";
 
 export class IntroManager {
   introRunning = false;
@@ -50,21 +51,51 @@ export class IntroManager {
       !this.suv ||
       !this.taxi
     ) {
+      console.error("Intro does not have all models to run, stopping.");
+      this.onIntroComplete();
       return;
     }
 
     this.introRunning = true;
 
-    const master = gsap.timeline();
+    const master = gsap.timeline({ onComplete: this.onIntroComplete });
     master.add(this.vanDriveIn(this.van));
     master.add(this.cameraZoomIn());
     master.add(this.vanDoorsOpen(this.leftDoor, this.rightDoor));
     master.add(this.boxFall());
+    master.add(this.vanDoorsClose(this.leftDoor, this.rightDoor));
     master.add(this.cameraZoomOut());
     master.add(this.carDriveOut(this.suv));
     master.add(this.carDriveOut(this.taxi));
-    master.add(this.vanDoorsClose(this.leftDoor, this.rightDoor));
     master.add(this.carDriveOut(this.van));
+  }
+
+  private readonly onIntroComplete = () => {
+    this.cleanup();
+    this.introRunning = false;
+  };
+
+  private cleanup() {
+    const { scene } = this.gameStore;
+
+    // Dispose of models and remove from scene
+    if (this.van) {
+      this.leftDoor = undefined;
+      this.rightDoor = undefined;
+      disposeObject(this.van);
+      scene.remove(this.van);
+      this.van = undefined;
+    }
+    if (this.suv) {
+      disposeObject(this.suv);
+      scene.remove(this.suv);
+      this.suv = undefined;
+    }
+    if (this.taxi) {
+      disposeObject(this.taxi);
+      scene.remove(this.taxi);
+      this.taxi = undefined;
+    }
   }
 
   private vanDriveIn(van: THREE.Object3D) {
