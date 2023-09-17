@@ -14,11 +14,12 @@ import { RoadBuilder } from "./road-builder";
 import { RoadManager } from "./road-manager";
 import { createInitData } from "./model/game-init-data";
 import { IntroManager } from "./intro-manager";
+import { disposeObject } from "../utils/utils";
 
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  showIntro = false;
+  showIntro = true;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();
@@ -95,7 +96,7 @@ export class Game {
     // Set to default values to prepare for a brand new game
     this.gameOver = false;
 
-    //disposeObject(this.gameStore.scene); // For blunt-force-removal!
+    disposeObject(this.gameStore.scene); // For blunt-force-removal!
 
     // Manager resets
     this.playerManager.reset();

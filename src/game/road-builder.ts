@@ -24,8 +24,18 @@ export class RoadBuilder {
   constructor(private modelLoader: ModelLoader) {}
 
   buildStartingRoad() {
-    // Just use a normal road for now
+    // Start with a normal road
     const road = this.buildRoad(0, 0);
+
+    // Add another row of pavement below
+    for (let i = 0; i < COL_COUNT; i++) {
+      const posX = i * ITEM_WIDTH;
+      const pavement = this.modelLoader.get(
+        Math.random() < 0.5 ? ModelNames.PAVEMENT : ModelNames.PAVEMENT_ALT
+      );
+      pavement.position.set(posX, 0, 5);
+      road.objects.add(pavement);
+    }
 
     // This is a unique road
     road.id = "start-road";
