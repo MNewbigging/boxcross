@@ -234,18 +234,19 @@ export class IntroManager {
 
   private vanDoorsClose(leftDoor: THREE.Object3D, rightDoor: THREE.Object3D) {
     // Get the back right door of the van
+    const duration = 0.5;
     const doorsTimeline = gsap.timeline();
     doorsTimeline.to(rightDoor.rotation, {
       y: 0,
-      duration: 0.1,
-      ease: Linear.easeIn,
+      duration,
+      ease: Back.easeIn,
     });
     doorsTimeline.to(
       leftDoor.rotation,
       {
         y: 0,
-        duration: 0.1,
-        ease: Linear.easeIn,
+        duration,
+        ease: Back.easeIn,
       },
       "<"
     );
