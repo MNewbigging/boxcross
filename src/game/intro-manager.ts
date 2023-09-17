@@ -39,8 +39,8 @@ export class IntroManager {
     this.suv = suv;
     this.taxi = taxi;
     this.van = van;
-    this.rightDoor = this.van.getObjectByName("SM_Veh_Car_Van_Door_r001");
-    this.leftDoor = this.van.getObjectByName("SM_Veh_Car_Van_Door_l001");
+    this.rightDoor = this.van.getObjectByName("car-van-door-r");
+    this.leftDoor = this.van.getObjectByName("car-van-door-l");
   }
 
   startIntro() {
