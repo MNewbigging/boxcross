@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Linear, Power2, Power3, gsap } from "gsap";
+import { Back, Linear, Power2, Power3, gsap } from "gsap";
 
 import { GameStore } from "./game-store";
 import { ModelNames } from "../loaders/model-loader";
@@ -158,18 +158,36 @@ export class IntroManager {
   private boxFall() {
     const { player } = this.gameStore;
 
+    const startRotZ = player.object.rotation.z;
+    const duration = 1;
+
     const tl = gsap.timeline();
     tl.to(player.object.position, {
       x: 40,
-      duration: 1,
+      duration,
+      ease: Power3.easeOut,
       onStart: () => {
         player.object.position.set(34, 2, -7.5);
       },
     });
-    tl.to(player.object.position, {
-      y: 0.01,
-      duration: 0.5,
-    });
+    tl.to(
+      player.object.position,
+      {
+        y: 0.01,
+        duration,
+        ease: Back.easeIn,
+      },
+      "<"
+    );
+    tl.to(
+      player.object.rotation,
+      {
+        z: startRotZ - Math.PI * 4,
+        duration,
+        ease: Power3.easeOut,
+      },
+      "<"
+    );
 
     return tl;
   }

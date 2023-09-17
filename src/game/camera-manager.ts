@@ -22,7 +22,7 @@ export class CameraManager {
   setup() {
     const { camera, world } = this.gameStore;
 
-    // Starting position
+    // Starting position // mid, 30, 0
     camera.position.set(world.xMid, 30, 0);
     camera.lookAt(world.xMid, 0, -10);
   }
