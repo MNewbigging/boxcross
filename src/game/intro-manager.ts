@@ -226,7 +226,7 @@ export class IntroManager {
     tl.to(car.position, {
       x: world.xMin,
       duration: 2,
-      ease: Power2.easeIn,
+      ease: "Back.easeIn(0.5)",
     });
 
     return tl;
