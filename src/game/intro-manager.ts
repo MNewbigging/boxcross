@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Back, Linear, Power2, Power3, gsap } from "gsap";
+import { Back, Elastic, Linear, Power2, Power3, gsap } from "gsap";
 
 import { GameStore } from "./game-store";
 import { ModelNames } from "../loaders/model-loader";
@@ -137,17 +137,19 @@ export class IntroManager {
     // Get the back right door of the van
     const doorsTimeline = gsap.timeline();
 
+    const duration = 1;
+
     doorsTimeline.to(rightDoor.rotation, {
       y: rightDoor.rotation.y + Math.PI / 2 + 0.2,
-      duration: 0.1,
-      ease: Linear.easeIn,
+      duration,
+      ease: Elastic.easeOut,
     });
     doorsTimeline.to(
       leftDoor.rotation,
       {
         y: leftDoor.rotation.y - Math.PI / 2 - 0.2,
-        duration: 0.1,
-        ease: Linear.easeIn,
+        duration,
+        ease: Elastic.easeOut,
       },
       "<"
     );
