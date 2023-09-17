@@ -5,6 +5,7 @@ import { GameLoader } from "../loaders/game-loader";
 import { Player } from "./model/player";
 import { Road } from "./model/road";
 import { World } from "./model/world";
+import { CircleProp } from "./model/props";
 
 // Highest level store class for the entire game
 export class GameStore {
@@ -18,6 +19,7 @@ export class GameStore {
   world: World;
   roads: Road[] = [];
   roadsCrossed = 0;
+  circleProps: CircleProp[] = [];
 
   constructor(initData: GameInitData) {
     // Copy over init values
@@ -33,5 +35,17 @@ export class GameStore {
     const pz = this.player.object.position.z;
 
     return this.roads.find((road) => pz > road.zMax && pz < road.zMin);
+  }
+
+  addCircleProp(prop: CircleProp) {
+    this.circleProps.push(prop);
+  }
+
+  removeCircleProp(propId: string) {
+    this.circleProps = this.circleProps.filter((prop) => prop.id !== propId);
+  }
+
+  getCirclePropsOnRoad(roadId: string) {
+    return this.circleProps.filter((prop) => prop.roadId === roadId);
   }
 }

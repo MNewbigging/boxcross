@@ -6,6 +6,7 @@ import { ModelNames } from "../../loaders/model-loader";
 import { Player } from "./player";
 import { World } from "./world";
 import { CameraManager } from "../camera-manager";
+import { PlayerManager } from "../player-manager";
 
 // The starting properties of the game, passed to store on init to ensure all are defined throughout
 export interface GameInitData {
@@ -26,7 +27,7 @@ export function createInitData(
     loader,
     scene: createScene(),
     camera: CameraManager.createCamera(canvas),
-    player: createPlayer(loader),
+    player: PlayerManager.createPlayer(loader),
     world: createWorld(),
   };
 }
@@ -37,13 +38,6 @@ function createScene() {
   scene.background = new THREE.Color("#1680AF");
 
   return scene;
-}
-
-export function createPlayer(loader: GameLoader): Player {
-  const object = loader.modelLoader.get(ModelNames.PLAYER);
-  object.scale.set(2, 2, 2);
-
-  return new Player(object);
 }
 
 function createWorld(): World {

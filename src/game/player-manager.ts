@@ -2,15 +2,17 @@ import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
-import { createPlayer } from "./model/game-init-data";
 import { disposeObject } from "../utils/utils";
-import { PlayerEffect } from "./model/player";
+import { Player, PlayerEffect } from "./model/player";
+import { CircleProp } from "./model/props";
+import { GameLoader } from "../loaders/game-loader";
+import { ModelNames } from "../loaders/model-loader";
 
 export class PlayerManager {
-  private nextMovePos = new THREE.Vector3();
   private moveSpeedNormal = 15;
   private moveSpeedCrossingMultiplier = 1.5;
   private readonly maxUpperMovement = 24; // Measured against player.cameraDistance to prevent moving up offscreen
+  private readonly playerPosY = 0.01;
 
   constructor(
     private gameStore: GameStore,
@@ -18,12 +20,19 @@ export class PlayerManager {
     private events: EventListener
   ) {}
 
+  static createPlayer(loader: GameLoader) {
+    const object = loader.modelLoader.get(ModelNames.PLAYER);
+    object.scale.set(2, 2, 2);
+
+    return new Player(object);
+  }
+
   setup() {
     const { scene, world } = this.gameStore;
 
     // Create a new player, add to scene but off-screen for now
-    const newPlayer = createPlayer(this.gameStore.loader);
-    newPlayer.object.position.set(world.xMid, 0.01, 20);
+    const newPlayer = PlayerManager.createPlayer(this.gameStore.loader);
+    newPlayer.object.position.set(world.xMid, this.playerPosY, 20);
     this.gameStore.player = newPlayer;
     scene.add(this.gameStore.player.object);
   }
@@ -75,42 +84,86 @@ export class PlayerManager {
     const { player, world } = this.gameStore;
 
     // Reset next move pos to current position
-    this.nextMovePos.copy(player.object.position);
+    let nextMovePos = new THREE.Vector3().copy(player.object.position);
 
     // Change next move pos according to received inputs
     if (this.keyboardListener.isKeyPressed("a")) {
       let nextPosX = player.object.position.x - moveSpeed * dt;
       nextPosX = Math.max(nextPosX, world.xMinPlayer);
-      this.nextMovePos.x = nextPosX;
+      nextMovePos.x = nextPosX;
     }
     if (this.keyboardListener.isKeyPressed("d")) {
       let nextPosX = player.object.position.x + moveSpeed * dt;
       nextPosX = Math.min(nextPosX, world.xMaxPlayer);
-      this.nextMovePos.x = nextPosX;
+      nextMovePos.x = nextPosX;
     }
     if (this.keyboardListener.isKeyPressed("w")) {
       // Prevent moving beyond camera view
       if (player.cameraDistance < this.maxUpperMovement) {
         const nextPosZ = player.object.position.z - moveSpeed * dt;
-        this.nextMovePos.z = nextPosZ;
+        nextMovePos.z = nextPosZ;
       }
     }
     if (this.keyboardListener.isKeyPressed("s")) {
       let nextPosZ = player.object.position.z + moveSpeed * dt;
       nextPosZ = Math.min(nextPosZ, world.zMin);
-      this.nextMovePos.z = nextPosZ;
+      nextMovePos.z = nextPosZ;
     }
 
-    // Collision detection against stationary objects
-    const colliding = this.collidesWithProp(this.nextMovePos);
+    // Alter next position if colliding
+    nextMovePos = this.collisionCheck(nextMovePos);
 
-    // Move to the next position
-    if (!colliding) {
-      player.object.position.copy(this.nextMovePos);
-    }
+    // Ensure y is kept at the same level
+    nextMovePos.y = this.playerPosY;
+
+    // Move to next position
+    player.object.position.copy(nextMovePos);
   }
 
-  private collidesWithProp(nextPos: THREE.Vector3) {
-    return false;
+  private collisionCheck(nextMovePos: THREE.Vector3) {
+    // Check against circle props
+    const currentRoad = this.gameStore.getCurrentRoad();
+    if (!currentRoad) {
+      return nextMovePos;
+    }
+
+    const roadCircleProps = this.gameStore.getCirclePropsOnRoad(currentRoad.id);
+    const movePos = this.checkCollisionCircleProps(
+      roadCircleProps,
+      nextMovePos
+    );
+
+    return movePos;
+  }
+
+  private checkCollisionCircleProps(
+    props: CircleProp[],
+    nextMovePos: THREE.Vector3
+  ) {
+    for (const prop of props) {
+      // Distance from next move pos to prop
+      const propDistance = nextMovePos.distanceTo(prop.position);
+
+      // Max allowed distance to prop
+      const playerRadius = 0.6;
+      const maxDistance = prop.radius + playerRadius;
+
+      // Is it colliding?
+      if (propDistance < maxDistance) {
+        // Get the intersection depth
+        const intersectionDepth = Math.abs(propDistance - maxDistance);
+
+        // Move that far away along collision normal
+        const direction = nextMovePos.clone().sub(prop.position).normalize();
+        const adjustStep = direction.multiplyScalar(intersectionDepth);
+
+        nextMovePos.add(adjustStep);
+
+        // Stop checking other props
+        break;
+      }
+    }
+
+    return nextMovePos;
   }
 }
