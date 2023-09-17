@@ -4,6 +4,7 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { disposeObject, getCarWheels, randomRange } from "../utils/utils";
+import { PlayerEffect } from "./model/player";
 
 interface RoadSpawner {
   leftLaneSpawnTimer: number; // tracks time since last spawn
@@ -156,6 +157,12 @@ export class CarManager {
 
   private checkPlayerCollision() {
     const { player } = this.gameStore;
+
+    // If player is unreachable to cars, don't bother checking
+    if (player.hasActiveEffect(PlayerEffect.IN_MANHOLE)) {
+      return;
+    }
+
     const currentRoad = this.gameStore.getCurrentRoad();
     if (!currentRoad) {
       return;
