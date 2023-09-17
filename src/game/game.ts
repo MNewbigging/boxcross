@@ -18,7 +18,7 @@ import { IntroManager } from "./intro-manager";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  showIntro = true;
+  showIntro = false;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();

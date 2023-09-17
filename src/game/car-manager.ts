@@ -171,6 +171,7 @@ export class CarManager {
     const cars = this.roadSpawners.get(currentRoad.id)?.cars ?? [];
     for (const car of cars) {
       const carBox = new THREE.Box3().setFromObject(car.object);
+      carBox.expandByScalar(-0.95);
       const playerBox = new THREE.Box3().setFromObject(player.object);
 
       if (carBox.intersectsBox(playerBox)) {
