@@ -125,8 +125,11 @@ export class Game {
     // Build the starting roads
     this.roadManager.buildStartingRoads();
 
-    // Place player if not using intro
-    if (!this.usingIntro) {
+    // Different setup depending on if running intro
+    if (this.usingIntro) {
+      this.introManager.setupIntro();
+    } else {
+      // Place player if not using intro
       player.object.position.set(world.xMid, 0.01, -2.5);
       scene.add(player.object);
     }
