@@ -10,6 +10,7 @@ import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { ModelNames } from "../loaders/model-loader";
 import { CircleProp } from "./model/props";
+import { ITEM_WIDTH } from "./road-builder";
 
 interface StreetLight {
   object: THREE.Object3D;
@@ -17,9 +18,8 @@ interface StreetLight {
 }
 
 export class StreetLightManager {
-  private readonly minLightDistance = 10;
-  private readonly minLightCount = 4;
-  private readonly maxLightCount = 4;
+  private readonly minLightCount = 2;
+  private readonly maxLightCount = 5;
 
   private streetLights = new Map<string, StreetLight[]>();
 
@@ -86,23 +86,25 @@ export class StreetLightManager {
 
   private getRandomLightXPositions(count: number) {
     const { world } = this.gameStore;
-    const positions: number[] = [];
 
+    // Can only place lights at edge of road columns (no overlapping dips/drains this way)
+    const validPositions: number[] = [];
+    for (let i = world.xMin; i <= world.xMax; i += ITEM_WIDTH) {
+      validPositions.push(i);
+    }
+
+    // Pick random valid positions
+    const positions: number[] = [];
     for (let i = 0; i < count; i++) {
-      let pos = randomRange(world.xMin, world.xMax);
-      while (this.overlapsOthers(pos, positions)) {
-        pos = randomRange(world.xMin, world.xMax);
-      }
-      positions.push(pos);
+      // Get a random valid position
+      const rnd = Math.floor(Math.random() * validPositions.length);
+      positions.push(validPositions[rnd]);
+
+      // No longer a valid position
+      validPositions.splice(rnd, 1);
     }
 
     return positions;
-  }
-
-  private overlapsOthers(posX: number, others: number[]) {
-    return others.some(
-      (otherPosX) => Math.abs(posX - otherPosX) < this.minLightDistance
-    );
   }
 
   private readonly onRoadRemoved = (road: Road) => {
