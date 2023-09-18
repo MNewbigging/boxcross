@@ -77,7 +77,10 @@ export class Game {
       this.gameStore,
       this.eventListener
     );
-    this.lightingManager = new LightingManager(this.gameStore);
+    this.lightingManager = new LightingManager(
+      this.gameStore,
+      this.eventListener
+    );
 
     // Listeners
     this.eventListener.on("player-hit-car", this.onPlayerHitCar);

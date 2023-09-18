@@ -16,7 +16,6 @@ export class Renderer {
     this.renderer.outputEncoding = THREE.sRGBEncoding;
     this.renderer.toneMapping = THREE.LinearToneMapping;
     this.renderer.toneMappingExposure = 1;
-    this.renderer.shadowMap.enabled = true;
     window.addEventListener("resize", this.onCanvasResize);
     this.onCanvasResize();
   }
