@@ -16,6 +16,7 @@ import { createInitData } from "./model/game-init-data";
 import { IntroManager } from "./intro-manager";
 import { disposeObject } from "../utils/utils";
 import { StreetLightManager } from "./street-light-manager";
+import { LightingManager } from "./lighting-manager";
 
 // Highest level class for the entire game
 export class Game {
@@ -36,6 +37,7 @@ export class Game {
   private manholeManager: ManholeManager;
   private introManager: IntroManager;
   private streetLightManager: StreetLightManager;
+  private lightingManager: LightingManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -75,23 +77,7 @@ export class Game {
       this.gameStore,
       this.eventListener
     );
-
-    // Add lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-    const directLight = new THREE.DirectionalLight();
-    directLight.castShadow = true;
-
-    directLight.position.set(0, 1, 0);
-    directLight.shadow.camera.top = 100;
-    directLight.shadow.camera.right = this.gameStore.world.xMax;
-    directLight.shadow.camera.bottom = -1.5;
-    directLight.shadow.camera.far = 30;
-
-    directLight.target.position.set(0, 0, -10);
-
-    const helper = new THREE.CameraHelper(directLight.shadow.camera);
-
-    this.gameStore.scene.add(directLight, directLight.target, helper);
+    this.lightingManager = new LightingManager(this.gameStore);
 
     // Listeners
     this.eventListener.on("player-hit-car", this.onPlayerHitCar);
@@ -183,15 +169,16 @@ export class Game {
 
     const dt = this.clock.getDelta();
 
-    const checkCollisions = !this.gameOver && !this.introManager.introRunning;
+    const gameRunning = !this.gameOver && !this.introManager.introRunning;
 
-    this.carManager.update(dt, checkCollisions);
+    this.carManager.update(dt, gameRunning);
 
-    if (checkCollisions) {
+    if (gameRunning) {
       this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
       this.manholeManager.update();
+      this.lightingManager.update(dt);
     }
 
     this.renderer.render();
