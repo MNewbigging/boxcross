@@ -176,7 +176,7 @@ export class Game {
     //this.carManager.update(dt, checkCollisions);
 
     if (checkCollisions) {
-      //this.roadManager.update();
+      this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
       //this.manholeManager.update();
