@@ -33,9 +33,9 @@ export class Game {
   private carManager: CarManager;
   private playerManager: PlayerManager;
   private cameraManager: CameraManager;
-  private manholeManager: ManholeManager;
+  //private manholeManager: ManholeManager;
   private introManager: IntroManager;
-  private streetLightManager: StreetLightManager;
+  //private streetLightManager: StreetLightManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -65,16 +65,16 @@ export class Game {
       this.eventListener
     );
     this.cameraManager = new CameraManager(this.gameStore, this.eventListener);
-    this.manholeManager = new ManholeManager(
-      this.gameStore,
-      this.eventListener,
-      this.keyboardListener
-    );
+    // this.manholeManager = new ManholeManager(
+    //   this.gameStore,
+    //   this.eventListener,
+    //   this.keyboardListener
+    // );
     this.introManager = new IntroManager(this.gameStore);
-    this.streetLightManager = new StreetLightManager(
-      this.gameStore,
-      this.eventListener
-    );
+    // this.streetLightManager = new StreetLightManager(
+    //   this.gameStore,
+    //   this.eventListener
+    // );
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -109,8 +109,8 @@ export class Game {
     this.roadManager.reset();
     this.carManager.reset();
     this.cameraManager.reset();
-    this.manholeManager.reset();
-    this.streetLightManager.reset();
+    // this.manholeManager.reset();
+    // this.streetLightManager.reset();
 
     cancelAnimationFrame(this.animRequestId);
 
@@ -173,13 +173,13 @@ export class Game {
 
     const checkCollisions = !this.gameOver && !this.introManager.introRunning;
 
-    this.carManager.update(dt, checkCollisions);
+    //this.carManager.update(dt, checkCollisions);
 
     if (checkCollisions) {
-      this.roadManager.update();
+      //this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
-      this.manholeManager.update();
+      //this.manholeManager.update();
     }
 
     this.renderer.render();

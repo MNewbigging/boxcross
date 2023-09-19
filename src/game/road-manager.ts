@@ -24,9 +24,9 @@ export class RoadManager {
     this.events.fire("road-created", startingRoad);
 
     // Then as many lanes as lane buffer dictates
-    for (let x = 0; x < this.roadAheadBuffer; x++) {
-      this.spawnNextRoad();
-    }
+    // for (let x = 0; x < this.roadAheadBuffer; x++) {
+    //   this.spawnNextRoad();
+    // }
   }
 
   reset() {
