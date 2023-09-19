@@ -1,27 +1,18 @@
 import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
-import {
-  disposeObject,
-  randomId,
-  randomRange,
-  randomRangeInt,
-} from "../utils/utils";
+import { mergeWithRoad, randomId, randomRangeInt } from "../utils/utils";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { ModelNames } from "../loaders/model-loader";
-import { CircleProp } from "./model/props";
 import { ITEM_WIDTH } from "./road-builder";
 
-interface StreetLight {
-  object: THREE.Object3D;
-  propId: string;
-}
-
 export class StreetLightManager {
-  private readonly minLightCount = 2;
-  private readonly maxLightCount = 5;
+  private readonly minLightCount = 4;
+  private readonly maxLightCount = 4;
+  private readonly topOffset = -16.5;
+  private readonly botOffset = -3.5;
 
-  private streetLights = new Map<string, StreetLight[]>();
+  private circlePropIds = new Map<string, string[]>();
 
   constructor(private gameStore: GameStore, private events: EventListener) {
     events.on("road-created", this.onRoadCreated);
@@ -29,92 +20,96 @@ export class StreetLightManager {
   }
 
   reset() {
-    this.streetLights.forEach((lights: StreetLight[]) =>
-      lights.forEach((light) => this.removeStreetLight(light))
+    this.circlePropIds.forEach((propIds: string[]) =>
+      propIds.forEach((id) => this.gameStore.removeCircleProp(id))
     );
-
-    this.streetLights.clear();
+    this.circlePropIds.clear();
   }
 
   private readonly onRoadCreated = (road: Road) => {
-    const { scene } = this.gameStore;
-    const { modelLoader } = this.gameStore.loader;
-
     // Decide how many lights to create either side
     const lightCount = randomRangeInt(this.minLightCount, this.maxLightCount);
 
-    // Get light positions along x axis
-    const xPositions = this.getRandomLightXPositions(lightCount);
+    // Get the random positions for those lights
+    const positions = this.getRandomLightPositions(lightCount);
 
-    // Place the lights
-    const streetLights: StreetLight[] = [];
-    for (const xPos of xPositions) {
-      // Create the light
-      const object = modelLoader.get(ModelNames.STREET_LIGHT);
+    // Create light objects at those positions
+    this.createLightObjects(positions, road);
 
-      // Randomly assign to top/bot side of road
-      if (Math.random() < 0.5) {
-        // Top
-        object.position.set(xPos, 0, road.zMax + 3.5);
-      } else {
-        // Bot
-        object.rotateY(Math.PI);
-        object.position.set(xPos, 0, road.zMin - 3.5);
-      }
-
-      // Create the prop for the light, give it to game store
-      const prop: CircleProp = {
-        id: randomId(),
-        roadId: road.id,
-        position: new THREE.Vector3(object.position.x, 0, object.position.z),
-        radius: 0.2,
-      };
-      this.gameStore.addCircleProp(prop);
-
-      //  Add the object to the scene
-      scene.add(object);
-
-      // Keep track of lights made
-      streetLights.push({
-        object,
-        propId: prop.id,
-      });
-    }
-
-    this.streetLights.set(road.id, streetLights);
+    // Create circle props for the lights
+    this.createCircleProps(road.id, positions);
   };
 
-  private getRandomLightXPositions(count: number) {
+  private getRandomLightPositions(count: number): THREE.Vector3[] {
     const { world } = this.gameStore;
 
     // Can only place lights at edge of road columns (no overlapping dips/drains this way)
-    const validPositions: number[] = [];
+    const validXPositions: number[] = [];
     for (let i = world.xMin; i <= world.xMax; i += ITEM_WIDTH) {
-      validPositions.push(i);
+      validXPositions.push(i);
     }
 
     // Pick random valid positions
-    const positions: number[] = [];
+    const positions: THREE.Vector3[] = [];
     for (let i = 0; i < count; i++) {
-      // Get a random valid position
-      const rnd = Math.floor(Math.random() * validPositions.length);
-      positions.push(validPositions[rnd]);
+      // Get a random valid x position, then remove it for next iteration
+      const rnd = Math.floor(Math.random() * validXPositions.length);
+      const xPos = validXPositions[rnd];
+      validXPositions.splice(rnd, 1);
 
-      // No longer a valid position
-      validPositions.splice(rnd, 1);
+      // Random z position - either top of bottom side of road
+      const zPos = Math.random() < 0.5 ? this.topOffset : this.botOffset;
+
+      positions.push(new THREE.Vector3(xPos, 0, zPos));
     }
 
     return positions;
   }
 
-  private readonly onRoadRemoved = (road: Road) => {
-    const streetLights = this.streetLights.get(road.id) ?? [];
-    streetLights.forEach((light) => this.removeStreetLight(light));
-  };
+  private createLightObjects(positions: THREE.Vector3[], road: Road) {
+    const { modelLoader } = this.gameStore.loader;
 
-  private removeStreetLight(light: StreetLight) {
-    disposeObject(light.object);
-    this.gameStore.scene.remove(light.object);
-    this.gameStore.removeCircleProp(light.propId);
+    // Create the light objects
+    const lightObjects: THREE.Object3D[] = [];
+    positions.forEach((position: THREE.Vector3) => {
+      // Get model object
+      const object = modelLoader.get(ModelNames.STREET_LIGHT);
+
+      // Position it
+      object.position.copy(position);
+
+      // If it has a bottom offset, rotate it
+      if (object.position.z === this.botOffset) {
+        object.rotateY(Math.PI);
+      }
+
+      lightObjects.push(object);
+    });
+
+    // Merge with the road
+    mergeWithRoad(road, lightObjects, this.gameStore.scene);
   }
+
+  private createCircleProps(roadId: string, positions: THREE.Vector3[]) {
+    // Create the props
+    const circleProps = positions.map((position) => ({
+      id: randomId(),
+      roadId,
+      position,
+      radius: 0.2,
+    }));
+
+    // Give them to the game store
+    circleProps.forEach((prop) => this.gameStore.addCircleProp(prop));
+
+    // Keep track of their ids against the road for later removal
+    const propIds = circleProps.map((prop) => prop.id);
+    this.circlePropIds.set(roadId, propIds);
+  }
+
+  private readonly onRoadRemoved = (road: Road) => {
+    const propIds = this.circlePropIds.get(road.id) ?? [];
+    propIds.forEach((id) => this.gameStore.removeCircleProp(id));
+    this.circlePropIds.delete(road.id);
+  };
 }

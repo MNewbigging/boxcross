@@ -35,7 +35,7 @@ export class Game {
   private cameraManager: CameraManager;
   //private manholeManager: ManholeManager;
   private introManager: IntroManager;
-  //private streetLightManager: StreetLightManager;
+  private streetLightManager: StreetLightManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -71,10 +71,10 @@ export class Game {
     //   this.keyboardListener
     // );
     this.introManager = new IntroManager(this.gameStore);
-    // this.streetLightManager = new StreetLightManager(
-    //   this.gameStore,
-    //   this.eventListener
-    // );
+    this.streetLightManager = new StreetLightManager(
+      this.gameStore,
+      this.eventListener
+    );
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -110,7 +110,7 @@ export class Game {
     this.carManager.reset();
     this.cameraManager.reset();
     // this.manholeManager.reset();
-    // this.streetLightManager.reset();
+    this.streetLightManager.reset();
 
     cancelAnimationFrame(this.animRequestId);
 

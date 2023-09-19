@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import GUI from "lil-gui";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
+import { Road } from "../game/model/road";
 
 export function addGui(object: THREE.Object3D, name = "") {
   const gui = new GUI();
@@ -124,4 +125,29 @@ export function mergeGeometries(group: THREE.Group) {
 
   // Wrap in a group and return
   return new THREE.Group().add(mesh);
+}
+
+export function mergeWithRoad(
+  road: Road,
+  objects: THREE.Object3D[],
+  scene: THREE.Scene
+) {
+  // Add all the objects to the road group
+  road.objects.add(...objects);
+
+  // Re-merge the road group
+  const merged = mergeGeometries(road.objects);
+  if (!merged) {
+    return;
+  }
+
+  // Remove the old road group from the scene
+  scene.remove(road.objects);
+
+  // Replace with the merged group, update merged position
+  merged.position.z = road.zMin;
+  road.objects = merged;
+
+  // Add back to the scene
+  scene.add(road.objects);
 }
