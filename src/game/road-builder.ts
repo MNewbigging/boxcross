@@ -1,5 +1,5 @@
 import * as THREE from "three";
-
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
 import { randomId, randomIndex, randomRange } from "../utils/utils";
 import { Road } from "./model/road";
@@ -113,7 +113,36 @@ export class RoadBuilder {
       }
     });
 
-    return roadGroup;
+    // Merge the road geometries
+    const merged = this.mergeGeometries(roadGroup);
+
+    return merged;
+  }
+
+  private mergeGeometries(objects: THREE.Group) {
+    // Save the material to reuse later
+    const material = (objects.children[0] as THREE.Mesh).material;
+
+    // Pull out all the geometries from the group
+    const geometries: THREE.BufferGeometry[] = [];
+    objects.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        if (child.geometry) {
+          child.updateMatrixWorld();
+          geometries.push(child.geometry.applyMatrix4(child.matrixWorld));
+        }
+      }
+    });
+
+    // Merge the geometries
+    const merged = BufferGeometryUtils.mergeBufferGeometries(geometries);
+    if (!merged) {
+      console.error("could not merge geometries");
+    }
+
+    const mesh = new THREE.Mesh(merged, material);
+
+    return new THREE.Group().add(mesh);
   }
 
   // Return all indices that do not contain or neighbour the target type
