@@ -1,7 +1,12 @@
 import * as THREE from "three";
 import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
 import { ModelLoader, ModelNames } from "../loaders/model-loader";
-import { randomId, randomIndex, randomRange } from "../utils/utils";
+import {
+  mergeGeometries,
+  randomId,
+  randomIndex,
+  randomRange,
+} from "../utils/utils";
 import { Road } from "./model/road";
 
 enum RoadColumnType {
@@ -35,6 +40,12 @@ export class RoadBuilder {
       );
       pavement.position.set(posX, 0, 5);
       road.objects.add(pavement);
+    }
+
+    // Re-merge the road with added pavement
+    const merged = mergeGeometries(road.objects);
+    if (merged) {
+      road.objects = merged;
     }
 
     // This is a unique road
@@ -114,35 +125,9 @@ export class RoadBuilder {
     });
 
     // Merge the road geometries
-    const merged = this.mergeGeometries(roadGroup);
+    const mergedGroup = mergeGeometries(roadGroup);
 
-    return merged;
-  }
-
-  private mergeGeometries(objects: THREE.Group) {
-    // Save the material to reuse later
-    const material = (objects.children[0] as THREE.Mesh).material;
-
-    // Pull out all the geometries from the group
-    const geometries: THREE.BufferGeometry[] = [];
-    objects.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        if (child.geometry) {
-          child.updateMatrixWorld();
-          geometries.push(child.geometry.applyMatrix4(child.matrixWorld));
-        }
-      }
-    });
-
-    // Merge the geometries
-    const merged = BufferGeometryUtils.mergeBufferGeometries(geometries);
-    if (!merged) {
-      console.error("could not merge geometries");
-    }
-
-    const mesh = new THREE.Mesh(merged, material);
-
-    return new THREE.Group().add(mesh);
+    return mergedGroup ?? roadGroup;
   }
 
   // Return all indices that do not contain or neighbour the target type

@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import GUI from "lil-gui";
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
 
 export function addGui(object: THREE.Object3D, name = "") {
   const gui = new GUI();
@@ -74,4 +75,53 @@ export function getCarWheels(
   });
 
   return wheels;
+}
+
+export function getMaterial(group: THREE.Group) {
+  let material: THREE.Material | undefined = undefined;
+  group.traverse((child) => {
+    if (material !== undefined) {
+      return;
+    }
+
+    if (child instanceof THREE.Mesh) {
+      material = child.material;
+    }
+  });
+
+  return material;
+}
+
+export function mergeGeometries(group: THREE.Group) {
+  // Get the material to apply to merged mesh
+  const material = getMaterial(group);
+  if (!material) {
+    return undefined;
+  }
+
+  // Pull out all the geometries from the group
+  const geometries: THREE.BufferGeometry[] = [];
+  group.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      child.updateMatrixWorld();
+      const geom = child.geometry.clone();
+      geom.applyMatrix4(child.matrixWorld);
+      geometries.push(geom);
+    }
+  });
+
+  // Merge the geometries
+  const mergedGeometry = BufferGeometryUtils.mergeBufferGeometries(
+    geometries,
+    true
+  );
+  if (!mergedGeometry) {
+    return undefined;
+  }
+
+  // Create a mesh for the geometry and material
+  const mesh = new THREE.Mesh(mergedGeometry, material);
+
+  // Wrap in a group and return
+  return new THREE.Group().add(mesh);
 }
