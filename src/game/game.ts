@@ -33,7 +33,7 @@ export class Game {
   private carManager: CarManager;
   private playerManager: PlayerManager;
   private cameraManager: CameraManager;
-  //private manholeManager: ManholeManager;
+  private manholeManager: ManholeManager;
   private introManager: IntroManager;
   private streetLightManager: StreetLightManager;
 
@@ -65,11 +65,11 @@ export class Game {
       this.eventListener
     );
     this.cameraManager = new CameraManager(this.gameStore, this.eventListener);
-    // this.manholeManager = new ManholeManager(
-    //   this.gameStore,
-    //   this.eventListener,
-    //   this.keyboardListener
-    // );
+    this.manholeManager = new ManholeManager(
+      this.gameStore,
+      this.eventListener,
+      this.keyboardListener
+    );
     this.introManager = new IntroManager(this.gameStore);
     this.streetLightManager = new StreetLightManager(
       this.gameStore,
@@ -109,7 +109,7 @@ export class Game {
     this.roadManager.reset();
     this.carManager.reset();
     this.cameraManager.reset();
-    // this.manholeManager.reset();
+    this.manholeManager.reset();
     this.streetLightManager.reset();
 
     cancelAnimationFrame(this.animRequestId);
@@ -136,7 +136,7 @@ export class Game {
     } else {
       // Place player if not using intro
       const { world, player } = this.gameStore;
-      player.object.position.set(world.xMid, 0.01, -2.5);
+      player.object.position.set(world.xMid, 0.01, -1.5);
     }
   }
 
@@ -173,13 +173,13 @@ export class Game {
 
     const checkCollisions = !this.gameOver && !this.introManager.introRunning;
 
-    //this.carManager.update(dt, checkCollisions);
+    this.carManager.update(dt, checkCollisions);
 
     if (checkCollisions) {
       this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
-      //this.manholeManager.update();
+      this.manholeManager.update();
     }
 
     this.renderer.render();
