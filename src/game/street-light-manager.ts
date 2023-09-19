@@ -5,6 +5,7 @@ import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { ModelNames } from "../loaders/model-loader";
 import { ITEM_WIDTH } from "./road-builder";
+import { CircleProp } from "./model/props";
 
 export class StreetLightManager {
   private readonly minLightCount = 4;
@@ -37,7 +38,7 @@ export class StreetLightManager {
     this.createLightObjects(positions, road);
 
     // Create circle props for the lights
-    this.createCircleProps(road.id, positions);
+    this.createCircleProps(road, positions);
   };
 
   private getRandomLightPositions(count: number): THREE.Vector3[] {
@@ -90,21 +91,27 @@ export class StreetLightManager {
     mergeWithRoad(road, lightObjects, this.gameStore.scene);
   }
 
-  private createCircleProps(roadId: string, positions: THREE.Vector3[]) {
+  private createCircleProps(road: Road, positions: THREE.Vector3[]) {
     // Create the props
-    const circleProps = positions.map((position) => ({
-      id: randomId(),
-      roadId,
-      position,
-      radius: 0.2,
-    }));
+    const circleProps: CircleProp[] = [];
+    positions.forEach((position) => {
+      // Position is local to road, adjust for real world position
+      position.z += road.zMin;
+
+      circleProps.push({
+        id: randomId(),
+        roadId: road.id,
+        position,
+        radius: 0.2,
+      });
+    });
 
     // Give them to the game store
     circleProps.forEach((prop) => this.gameStore.addCircleProp(prop));
 
     // Keep track of their ids against the road for later removal
     const propIds = circleProps.map((prop) => prop.id);
-    this.circlePropIds.set(roadId, propIds);
+    this.circlePropIds.set(road.id, propIds);
   }
 
   private readonly onRoadRemoved = (road: Road) => {
