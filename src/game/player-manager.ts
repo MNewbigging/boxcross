@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
-import { disposeObject } from "../utils/utils";
+import { clamp, disposeObject } from "../utils/utils";
 import { Player, PlayerEffect } from "./model/player";
 import { CircleProp } from "./model/props";
 import { GameLoader } from "../loaders/game-loader";
@@ -80,6 +80,9 @@ export class PlayerManager {
     // Validate via collision checks
     this.collisionCheck();
 
+    // Keep inside world bounds
+    this.keepInsideBounds();
+
     // Finally, move player to valid position
     player.object.position.copy(this.nextPosition);
   }
@@ -96,6 +99,8 @@ export class PlayerManager {
   }
 
   private setInputDirection() {
+    const { player } = this.gameStore;
+
     // Reset move direction for this frame
     this.moveDirection.set(0, 0, 0);
 
@@ -106,7 +111,10 @@ export class PlayerManager {
       this.moveDirection.x = 1;
     }
     if (this.keyboardListener.isKeyPressed("w")) {
-      this.moveDirection.z = -1;
+      // Prevent moving up beyond camera view
+      if (player.cameraDistance < this.maxUpperMovement) {
+        this.moveDirection.z = -1;
+      }
     }
     if (this.keyboardListener.isKeyPressed("s")) {
       this.moveDirection.z = 1;
@@ -145,6 +153,14 @@ export class PlayerManager {
     this.nextPosition.y = this.playerPosY;
 
     return movePos;
+  }
+
+  private keepInsideBounds() {
+    const { world } = this.gameStore;
+
+    const currentX = this.nextPosition.x;
+
+    this.nextPosition.x = clamp(currentX, world.xMinPlayer, world.xMaxPlayer);
   }
 
   private checkCollisionCircleProps(props: CircleProp[]) {

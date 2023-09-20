@@ -28,6 +28,10 @@ export function randomRangeInt(min: number, max: number) {
   return Math.floor(randomRange(min, max));
 }
 
+export function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
 export function randomIndex(arrayLength: number) {
   return Math.floor(Math.random() * arrayLength);
 }

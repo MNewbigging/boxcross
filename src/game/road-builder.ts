@@ -124,6 +124,13 @@ export class RoadBuilder {
       }
     });
 
+    // Add extra basic columns either side (done after so as not to mess with world values)
+    // const leftSideX = -ITEM_WIDTH;
+    // const rightSideX = schema.length * ITEM_WIDTH;
+
+    // roadGroup.add(...this.buildBasicRoadColumn(leftSideX));
+    // roadGroup.add(...this.buildBasicRoadColumn(rightSideX));
+
     // Merge the road geometries
     const mergedGroup = mergeGeometries(roadGroup);
 
