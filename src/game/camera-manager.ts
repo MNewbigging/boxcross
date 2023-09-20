@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { gsap, Linear, Power2 } from "gsap";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 
@@ -7,6 +8,8 @@ export class CameraManager {
   private outOfViewTimer = 0; // How long player has been out of view
   private readonly outOfViewTimeLimit = 3; // Max time player can be out of view
   private cameraMoveSpeed = 5;
+  private targetOffsetZ = -10;
+  private targetPosition = new THREE.Vector3();
 
   constructor(private gameStore: GameStore, private events: EventListener) {}
 
@@ -24,7 +27,62 @@ export class CameraManager {
 
     // Starting position // mid, 30, 0
     camera.position.set(world.xMid, 30, 0);
-    camera.lookAt(world.xMid, 0, -10);
+
+    // Set rotation by looking at target
+    camera.lookAt(world.xMid, 0, this.targetOffsetZ);
+  }
+
+  zoomToPlayer() {
+    const { camera, player } = this.gameStore;
+
+    // Update the target position
+    this.targetPosition.set(
+      camera.position.x,
+      0,
+      camera.position.z + this.targetOffsetZ
+    );
+    camera.lookAt(this.targetPosition);
+
+    // Get stopping point of camera close to player
+    const stopPoint = camera.position.clone().lerp(player.object.position, 0.5);
+
+    const duration = 1;
+
+    // Animate target towards player position
+    const tl = gsap.timeline();
+    tl.to(this.targetPosition, {
+      x: player.object.position.x,
+      z: player.object.position.z,
+      ease: Power2.easeOut,
+      duration,
+      onUpdate: () => {
+        camera.lookAt(this.targetPosition);
+      },
+    });
+
+    tl.to(
+      camera.position,
+      {
+        x: stopPoint.x,
+        z: stopPoint.z,
+        ease: Power2.easeOut,
+        duration,
+      },
+      "<"
+    );
+
+    tl.to(
+      camera,
+      {
+        zoom: 2,
+        ease: Linear.easeInOut,
+        duration,
+        onUpdate: () => {
+          camera.updateProjectionMatrix();
+        },
+      },
+      "<"
+    );
   }
 
   reset() {

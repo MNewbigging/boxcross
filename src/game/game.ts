@@ -141,20 +141,13 @@ export class Game {
   }
 
   private onPlayerHitCar = () => {
-    const { camera, player } = this.gameStore;
-
     this.endGame();
 
-    // Squash the box and zoom the camera to it
-    camera.lookAt(player.object.position);
-    gsap.to(player.object.scale, { duration: 0.1, y: 0.1, x: 2.4, z: 2.2 });
-    gsap.to(camera, {
-      duration: 2,
-      zoom: 2,
-      onUpdate: () => {
-        camera.updateProjectionMatrix();
-      },
-    });
+    // Squash the box
+    this.playerManager.squashPlayer();
+
+    // Zoom camera to it
+    this.cameraManager.zoomToPlayer();
   };
 
   private onPlayerOutOfView = () => {

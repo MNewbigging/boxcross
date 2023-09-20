@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { gsap } from "gsap";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { KeyboardListener } from "../listeners/keyboard-listener";
@@ -40,6 +41,17 @@ export class PlayerManager {
     scene.add(this.gameStore.player.object);
   }
 
+  squashPlayer() {
+    const { player } = this.gameStore;
+
+    gsap.to(player.object.scale, {
+      x: 2.4,
+      z: 2.2,
+      y: 0.1,
+      duration: 0.1,
+    });
+  }
+
   reset() {
     const { scene } = this.gameStore;
 
@@ -54,10 +66,6 @@ export class PlayerManager {
     }
 
     this.movePlayer(dt);
-
-    // // Move per input
-    // const moveSpeed = this.getMoveSpeed();
-    // this.inputMovement(dt, moveSpeed);
   }
 
   private movePlayer(dt: number) {

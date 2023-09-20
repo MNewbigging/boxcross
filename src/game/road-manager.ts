@@ -6,7 +6,7 @@ import { PlayerEffect } from "./model/player";
 
 export class RoadManager {
   private readonly roadAheadBuffer = 2;
-  private readonly roadBehindBuffer = 1;
+  private readonly roadBehindBuffer = 2;
 
   constructor(
     private gameStore: GameStore,
