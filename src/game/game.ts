@@ -16,6 +16,7 @@ import { createInitData } from "./model/game-init-data";
 import { IntroManager } from "./intro-manager";
 import { disposeObject } from "../utils/utils";
 import { StreetLightManager } from "./street-light-manager";
+import { LightBeamManager } from "./light-beam-manager";
 
 // Highest level class for the entire game
 export class Game {
@@ -36,6 +37,7 @@ export class Game {
   private manholeManager: ManholeManager;
   private introManager: IntroManager;
   private streetLightManager: StreetLightManager;
+  private lightBeamManager: LightBeamManager;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -75,11 +77,24 @@ export class Game {
       this.gameStore,
       this.eventListener
     );
+    this.lightBeamManager = new LightBeamManager(
+      this.gameStore,
+      this.eventListener
+    );
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
-    const directLight = new THREE.DirectionalLight();
+    const directLight = new THREE.DirectionalLight(0xffffff, 1);
     this.gameStore.scene.add(ambientLight, directLight);
+
+    // const light = new THREE.SpotLight(0xff0000, 5);
+    // light.distance = 12;
+    // light.angle = Math.PI / 5;
+    // light.penumbra = 0.1;
+    // light.decay = 0;
+    // light.position.set(35, 5, -10);
+    // light.target.position.set(35, 0, -10);
+    // this.gameStore.scene.add(light, light.target);
 
     // Listeners
     this.eventListener.on("player-hit-car", this.onPlayerHitCar);
@@ -164,15 +179,16 @@ export class Game {
 
     const dt = this.clock.getDelta();
 
-    const checkCollisions = !this.gameOver && !this.introManager.introRunning;
+    const gameRunning = !this.gameOver && !this.introManager.introRunning;
 
-    this.carManager.update(dt, checkCollisions);
+    this.carManager.update(dt, gameRunning);
 
-    if (checkCollisions) {
+    if (gameRunning) {
       this.roadManager.update();
       this.playerManager.update(dt);
       this.cameraManager.update(dt);
       this.manholeManager.update();
+      this.lightBeamManager.update(dt);
     }
 
     this.renderer.render();

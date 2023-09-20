@@ -31,11 +31,23 @@ export class GameStore {
     this.world = initData.world;
   }
 
-  getCurrentRoad(): Road | undefined {
-    const pz = this.player.object.position.z;
-
-    return this.roads.find((road) => pz > road.zMax && pz < road.zMin);
+  isOnRoad(road: Road, posZ: number) {
+    return posZ > road.zMax && posZ < road.zMin;
   }
+
+  getCurrentRoad(): Road | undefined {
+    return this.roads.find((road) =>
+      this.isOnRoad(road, this.player.object.position.z)
+    );
+  }
+
+  getCurrentRoadIndexFor(objectPosition: number) {
+    const posZ = objectPosition;
+
+    return this.roads.findIndex((road) => this.isOnRoad(road, posZ));
+  }
+
+  getRoadsAhead() {}
 
   addCircleProp(prop: CircleProp) {
     this.circleProps.push(prop);

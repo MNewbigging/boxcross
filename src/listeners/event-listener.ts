@@ -1,3 +1,4 @@
+import * as THREE from "three";
 import { Road } from "../game/model/road";
 
 export interface EventMap {
@@ -8,6 +9,7 @@ export interface EventMap {
   "player-out-of-view": null;
   "road-crossed": number;
   "game-over": null;
+  "street-light-positions": { roadId: string; positions: THREE.Vector3[] };
 }
 
 type EventCallback = (event: any) => void;

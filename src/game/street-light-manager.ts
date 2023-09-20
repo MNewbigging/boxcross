@@ -89,6 +89,22 @@ export class StreetLightManager {
 
     // Merge with the road
     mergeWithRoad(road, lightObjects, this.gameStore.scene);
+
+    // Broadcast the positions of the light bulbs
+    const bulbPositions: THREE.Vector3[] = [];
+    lightObjects.forEach((light) => {
+      const bulbObject = light.getObjectByName("light-pos");
+      if (bulbObject) {
+        const worldPos = bulbObject.getWorldPosition(new THREE.Vector3());
+        bulbPositions.push(worldPos);
+      }
+    });
+    if (bulbPositions.length) {
+      this.events.fire("street-light-positions", {
+        roadId: road.id,
+        positions: bulbPositions,
+      });
+    }
   }
 
   private createCircleProps(road: Road, positions: THREE.Vector3[]) {

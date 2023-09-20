@@ -45,17 +45,10 @@ export class RoadManager {
     this.checkPlayerCrossing();
   }
 
-  private getCurrentRoadIndexFor(objectPosition: number) {
-    const { roads } = this.gameStore;
-    const posZ = objectPosition;
-
-    return roads.findIndex((road) => posZ > road.zMax && posZ <= road.zMin);
-  }
-
   private updateRoadsCrossed() {
     const { player, roads } = this.gameStore;
 
-    const currentRoadIndex = this.getCurrentRoadIndexFor(
+    const currentRoadIndex = this.gameStore.getCurrentRoadIndexFor(
       player.object.position.z
     );
     if (currentRoadIndex < 0) {
@@ -74,7 +67,9 @@ export class RoadManager {
   private updateRoadSpawns() {
     const { roads, camera } = this.gameStore;
 
-    const currentRoadIndex = this.getCurrentRoadIndexFor(camera.position.z);
+    const currentRoadIndex = this.gameStore.getCurrentRoadIndexFor(
+      camera.position.z
+    );
     if (currentRoadIndex < 0) {
       return;
     }
