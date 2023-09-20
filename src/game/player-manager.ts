@@ -111,6 +111,9 @@ export class PlayerManager {
     if (this.keyboardListener.isKeyPressed("s")) {
       this.moveDirection.z = 1;
     }
+
+    // Must normalise to prevent diagonal movement speedup
+    this.moveDirection.normalize();
   }
 
   private getMoveSpeed() {
