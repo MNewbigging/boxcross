@@ -12,8 +12,8 @@ interface Beam {
 export class LightBeamManager {
   private spawnTimer = 0;
   private spawnAt = 1;
-  private beamLifetime = 5;
-  private readonly beamLifetimeDefault = 5;
+  private beamLifetime = 1;
+  private readonly beamLifetimeDefault = 1;
   private activeBeam?: Beam;
   private lightPositions = new Map<string, THREE.Vector3[]>();
 
@@ -35,7 +35,8 @@ export class LightBeamManager {
 
     if (this.beamLifetime <= 0) {
       this.removeBeam();
-      this.resetTimers();
+      this.spawnAt = randomRange(1, 2);
+      this.spawnTimer = 0;
     }
   }
 
@@ -54,13 +55,9 @@ export class LightBeamManager {
     this.spawnTimer += dt;
 
     if (this.spawnTimer >= this.spawnAt) {
-      this.spawnBeam();
+      this.createBeam();
+      this.beamLifetime = this.beamLifetimeDefault;
     }
-  }
-
-  private spawnBeam() {
-    this.createBeam();
-    this.beamLifetime = this.beamLifetimeDefault;
   }
 
   private createBeam() {
@@ -73,7 +70,7 @@ export class LightBeamManager {
     const nextRoadIdx = currentRoadIdx + 1;
 
     // Get the light positions for the random road choice
-    const roadIdx = currentRoadIdx; //Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
+    const roadIdx = Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
     const positions = this.lightPositions.get(roads[roadIdx].id);
     if (!positions) {
       return undefined;
@@ -106,11 +103,6 @@ export class LightBeamManager {
     console.log("created light at", light);
   }
 
-  private resetTimers() {
-    this.spawnAt = randomRange(1, 2);
-    this.spawnTimer = 0;
-  }
-
   private onCreateStreetLights = (data: {
     roadId: string;
     positions: THREE.Vector3[];
@@ -124,6 +116,7 @@ export class LightBeamManager {
     // If there was an active beam on this road
     if (this.activeBeam?.roadId === road.id) {
       // Stop it
+      this.removeBeam();
     }
   };
 }
