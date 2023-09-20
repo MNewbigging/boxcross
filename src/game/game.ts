@@ -136,7 +136,7 @@ export class Game {
     } else {
       // Place player if not using intro
       const { world, player } = this.gameStore;
-      player.object.position.set(world.xMid, 0.01, -1.5);
+      player.object.position.set(40, 0.01, -7.5);
     }
   }
 
