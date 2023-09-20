@@ -97,7 +97,6 @@ export class StreetLightManager {
     positions.forEach((position) => {
       // Position is local to road, adjust for real world position
       position.z += road.zMin;
-
       circleProps.push({
         id: randomId(),
         roadId: road.id,

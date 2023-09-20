@@ -35,7 +35,7 @@ export class CameraManager {
 
   update(dt: number) {
     this.checkOutOfView(dt);
-    this.moveCamera(dt);
+    //this.moveCamera(dt);
   }
 
   private checkOutOfView(dt: number) {
