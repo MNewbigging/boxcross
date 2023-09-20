@@ -61,26 +61,54 @@ export class LightBeamManager {
   }
 
   private createBeam() {
-    const { roads, scene } = this.gameStore;
+    const { scene } = this.gameStore;
 
-    // Pick a random street light on this or future road
+    // Get a random road for light to appear on
+    const road = this.getRandomRoad();
+
+    // Get a random light position for this road
+    const position = this.getRandomLightPosition(road.id);
+
+    // Create a light here
+    const light = this.getBeamSpotlight(position);
+    scene.add(light, light.target);
+
+    // Keep track for later removal
+    this.activeBeam = {
+      light,
+      roadId: road.id,
+    };
+  }
+
+  private getRandomRoad() {
+    const { player, roads } = this.gameStore;
+
+    // Choose between this or next road
     const currentRoadIdx = this.gameStore.getCurrentRoadIndexFor(
-      this.gameStore.player.object.position.z
+      player.object.position.z
     );
     const nextRoadIdx = currentRoadIdx + 1;
 
-    // Get the light positions for the random road choice
-    const roadIdx = Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
-    const positions = this.lightPositions.get(roads[roadIdx].id);
+    // Pick one at random
+    const randomRoadIdx = Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
+
+    return roads[randomRoadIdx];
+  }
+
+  private getRandomLightPosition(roadId: string) {
+    const positions = this.lightPositions.get(roadId);
     if (!positions) {
-      return undefined;
+      return new THREE.Vector3();
     }
 
     // Pick a random light position
     const rnd = Math.floor(Math.random() * positions.length);
     const position = positions[rnd];
 
-    // Create a light here
+    return position;
+  }
+
+  private getBeamSpotlight(position: THREE.Vector3) {
     const light = new THREE.SpotLight(0xff0000, 5);
     light.distance = 12;
     light.angle = Math.PI / 5;
@@ -92,15 +120,7 @@ export class LightBeamManager {
     light.target.position.copy(position);
     light.target.position.y = 0;
 
-    scene.add(light, light.target);
-
-    // Keep track for later removal
-    this.activeBeam = {
-      light,
-      roadId: roads[roadIdx].id,
-    };
-
-    console.log("created light at", light);
+    return light;
   }
 
   private onCreateStreetLights = (data: {
