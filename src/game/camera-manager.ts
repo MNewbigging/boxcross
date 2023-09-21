@@ -26,7 +26,7 @@ export class CameraManager {
     const { camera, world } = this.gameStore;
 
     // Starting position // mid, 30, 0
-    camera.position.set(world.xMid, 10, 10);
+    camera.position.set(world.xMid, 30, 0);
 
     // Set rotation by looking at target
     camera.lookAt(world.xMid, 0, this.targetOffsetZ);
@@ -93,7 +93,7 @@ export class CameraManager {
 
   update(dt: number) {
     this.checkOutOfView(dt);
-    //this.moveCamera(dt);
+    this.moveCamera(dt);
   }
 
   private checkOutOfView(dt: number) {

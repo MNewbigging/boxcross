@@ -4,7 +4,7 @@ import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { randomRange } from "../utils/utils";
-import { PlayerEffect } from "./model/player";
+import { Player, PlayerEffect } from "./model/player";
 
 export class LightBeamManager {
   private spawnTimer = 0;
@@ -20,7 +20,7 @@ export class LightBeamManager {
   // How long beam takes to animate in - does not pull during this time
   private readonly beamStartupDuration = 1.2;
   // Max length beam stays on without pulling player
-  private readonly beamOnDuration = 5;
+  private readonly beamOnDuration = 3;
   // How long beam takes to animate out
   private readonly beamFinishDuration = 1;
   // How long player takes to animate into the beam
@@ -67,8 +67,7 @@ export class LightBeamManager {
     }
 
     // If beam cannot pull player, stop
-    const canPull = this.pullActive && !this.didPull;
-    if (!canPull) {
+    if (!this.canPullPlayer()) {
       return;
     }
 
@@ -86,6 +85,14 @@ export class LightBeamManager {
     }
   }
 
+  private canPullPlayer() {
+    const inManhole = this.gameStore.player.hasActiveEffect(
+      PlayerEffect.IN_MANHOLE
+    );
+
+    return this.pullActive && !this.didPull && !inManhole;
+  }
+
   private resetBeam() {
     // Reset beam properties
     this.activeRoadId = undefined;
@@ -94,7 +101,7 @@ export class LightBeamManager {
 
     // Then set spawn timer values
     const min = this.beamFinishDuration + 1;
-    const max = min + 2; // replace with prop later
+    const max = min + 1; // replace with prop later
     this.spawnAt = randomRange(min, max);
     this.spawnTimer = 0;
   }
@@ -154,7 +161,7 @@ export class LightBeamManager {
     const nextRoadIdx = currentRoadIdx + 1;
 
     // Pick one at random
-    const randomRoadIdx = currentRoadIdx; // Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
+    const randomRoadIdx = Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
 
     return roads[randomRoadIdx];
   }

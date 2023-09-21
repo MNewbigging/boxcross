@@ -70,6 +70,10 @@ export class ManholeManager {
   private checkShouldEnterManhole() {
     const { player } = this.gameStore;
 
+    if (player.hasActiveEffect(PlayerEffect.IN_BEAM)) {
+      return;
+    }
+
     const currentRoad = this.gameStore.getCurrentRoad();
     if (!currentRoad) {
       return;
