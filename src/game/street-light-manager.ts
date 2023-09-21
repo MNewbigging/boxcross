@@ -46,7 +46,7 @@ export class StreetLightManager {
 
     // Can only place lights at edge of road columns (no overlapping dips/drains this way)
     const validXPositions: number[] = [];
-    for (let i = world.xMin; i <= world.xMax; i += ITEM_WIDTH) {
+    for (let i = world.xMinPlayer; i <= world.xMaxPlayer; i += ITEM_WIDTH) {
       validXPositions.push(i);
     }
 

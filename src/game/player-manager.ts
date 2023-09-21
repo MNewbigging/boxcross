@@ -99,7 +99,10 @@ export class PlayerManager {
     const { player } = this.gameStore;
 
     // Review active effects to determine if player can move at all
-    if (player.hasActiveEffect(PlayerEffect.IN_MANHOLE)) {
+    if (
+      player.hasActiveEffect(PlayerEffect.IN_MANHOLE) ||
+      player.hasActiveEffect(PlayerEffect.IN_BEAM)
+    ) {
       return false;
     }
 

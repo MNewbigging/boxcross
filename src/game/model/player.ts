@@ -3,6 +3,7 @@ import * as THREE from "three";
 export enum PlayerEffect {
   IN_MANHOLE = "in-manhole",
   ON_CROSSING = "on-crossing",
+  IN_BEAM = "in-beam",
 }
 
 export class Player {
