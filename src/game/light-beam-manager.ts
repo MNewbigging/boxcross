@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Bounce, Linear, gsap } from "gsap";
+import { Bounce, Linear, Power1, gsap } from "gsap";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
@@ -23,6 +23,8 @@ export class LightBeamManager {
   private readonly beamOnDuration = 5;
   // How long beam takes to animate out
   private readonly beamFinishDuration = 1;
+  // How long player takes to animate into the beam
+  private readonly playerInDuration = 0.5;
   // How long player is trapped in the beam for
   private readonly playerTrapDuration = 3;
 
@@ -90,14 +92,16 @@ export class LightBeamManager {
     this.didPull = false;
     this.pullActive = false;
 
-    // Player is no longer beamed
-    this.gameStore.player.removeActiveEffect(PlayerEffect.IN_BEAM);
-
     // Then set spawn timer values
     const min = this.beamFinishDuration + 1;
     const max = min + 2; // replace with prop later
     this.spawnAt = randomRange(min, max);
     this.spawnTimer = 0;
+  }
+
+  private releasePlayer() {
+    // Player is no longer beamed
+    this.gameStore.player.removeActiveEffect(PlayerEffect.IN_BEAM);
   }
 
   private isPlayerInsideBeam() {
@@ -225,7 +229,6 @@ export class LightBeamManager {
       intensity: 0,
       angle: Math.PI / 8,
       duration: this.beamFinishDuration,
-      ease: Linear.easeIn,
     });
 
     // If player was caught in beam, animate it out too
@@ -236,6 +239,9 @@ export class LightBeamManager {
         {
           y: 0.01,
           duration: 0.5,
+          onComplete: () => {
+            this.releasePlayer();
+          },
         },
         "<"
       );
@@ -251,7 +257,39 @@ export class LightBeamManager {
       x: this.spotLight.position.x,
       z: this.spotLight.position.z,
       y: 2,
-      duration: 0.5,
+      duration: this.playerInDuration,
+      ease: Power1.easeIn,
     });
+
+    // Rotate while doing so
+    tl.to(
+      player.object.rotation,
+      {
+        y: player.object.rotation.y + Math.PI,
+        duration: this.playerInDuration,
+        ease: Power1.easeInOut,
+      },
+      "<"
+    );
+
+    // Then spin around for duration of the beam
+    const startRot = player.object.rotation.y;
+    tl.to(player.object.rotation, {
+      y: startRot + Math.PI * 4,
+      duration: this.beamLifetime,
+    });
+
+    // Bob up and down as well
+    tl.to(
+      player.object.position,
+      {
+        y: 3,
+        yoyo: true,
+        repeat: 1,
+        duration: this.beamLifetime / 2,
+        ease: Linear.easeInOut,
+      },
+      "<"
+    );
   }
 }
