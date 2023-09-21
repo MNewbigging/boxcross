@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { Bounce, Linear, gsap } from "gsap";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
@@ -8,7 +9,9 @@ export class LightBeamManager {
   private spawnTimer = 0;
   private spawnAt = 1;
   private beamLifetime = 1;
-  private readonly beamLifetimeDefault = 1;
+  private readonly beamLifetimeDuration = 3;
+  private readonly beamFlickerOnDuration = 1.2;
+  private readonly beamFinishDuration = 1;
   private spotLight = new THREE.SpotLight(0xff0000, 0);
   private activeRoadId?: string;
   private lightPositions = new Map<string, THREE.Vector3[]>();
@@ -40,8 +43,6 @@ export class LightBeamManager {
 
     if (this.beamLifetime <= 0) {
       this.removeBeam();
-      this.spawnAt = randomRange(1, 2);
-      this.spawnTimer = 0;
     }
   }
 
@@ -51,8 +52,24 @@ export class LightBeamManager {
     }
 
     // Hide the spotlight
-    this.spotLight.intensity = 0;
+    this.beamFinish();
     this.activeRoadId = undefined;
+
+    // Then set spawn timer values
+    const min = this.beamFinishDuration + 1;
+    const max = min + 2; // replace with prop later
+    this.spawnAt = randomRange(min, max);
+    this.spawnTimer = 0;
+  }
+
+  private beamFinish() {
+    const tl = gsap.timeline();
+    tl.to(this.spotLight, {
+      intensity: 0,
+      angle: Math.PI / 8,
+      duration: this.beamFinishDuration,
+      ease: Linear.easeIn,
+    });
   }
 
   private trackSpawn(dt: number) {
@@ -60,7 +77,6 @@ export class LightBeamManager {
 
     if (this.spawnTimer >= this.spawnAt) {
       this.createBeam();
-      this.beamLifetime = this.beamLifetimeDefault;
     }
   }
 
@@ -73,6 +89,9 @@ export class LightBeamManager {
 
     // Show the light here
     this.showBeamSpotlight(position);
+
+    // Set lifetime of the beam
+    this.beamLifetime = this.beamFlickerOnDuration + this.beamLifetimeDuration;
 
     // Keep track for later removal
     this.activeRoadId = road.id;
@@ -114,7 +133,17 @@ export class LightBeamManager {
     this.spotLight.target.position.y = 0;
 
     // Show the spotlight
-    this.spotLight.intensity = 5;
+    this.beamFlickerOn();
+  }
+
+  private beamFlickerOn() {
+    const tl = gsap.timeline();
+    tl.to(this.spotLight, {
+      intensity: 5,
+      angle: Math.PI / 5,
+      duration: this.beamFlickerOnDuration,
+      ease: Bounce.easeIn,
+    });
   }
 
   private onCreateStreetLights = (data: {
