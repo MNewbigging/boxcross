@@ -44,8 +44,9 @@ export class PlayerManager {
   squashPlayer() {
     const { player } = this.gameStore;
 
-    const tl = gsap.timeline();
+    player.object.position.y = this.playerPosY;
 
+    const tl = gsap.timeline();
     tl.to(player.object.scale, {
       x: 2.4,
       z: 2.2,

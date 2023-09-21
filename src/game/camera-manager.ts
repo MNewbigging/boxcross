@@ -7,7 +7,7 @@ export class CameraManager {
   private readonly outOfViewDistance = -3; // How far behind camera to be considered out of view
   private outOfViewTimer = 0; // How long player has been out of view
   private readonly outOfViewTimeLimit = 3; // Max time player can be out of view
-  private cameraMoveSpeed = 5;
+  private cameraMoveSpeed = 2;
   private targetOffsetZ = -10;
   private targetPosition = new THREE.Vector3();
 

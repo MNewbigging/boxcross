@@ -46,6 +46,16 @@ export class LightBeamManager {
     this.gameStore.scene.add(this.spotLight, this.spotLight.target);
   }
 
+  reset() {
+    // In case any beams were active
+    this.resetBeam();
+    this.lightPositions.clear();
+    this.spotLight.intensity = 0;
+
+    // Next light setup
+    this.setSpawnTimers();
+  }
+
   update(dt: number) {
     // Is there an active beam?
     if (this.activeRoadId) {
@@ -100,6 +110,10 @@ export class LightBeamManager {
     this.pullActive = false;
 
     // Then set spawn timer values
+    this.setSpawnTimers();
+  }
+
+  private setSpawnTimers() {
     const min = this.beamFinishDuration + 1;
     const max = min + 1; // replace with prop later
     this.spawnAt = randomRange(min, max);

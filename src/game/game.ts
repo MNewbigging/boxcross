@@ -87,15 +87,6 @@ export class Game {
     const directLight = new THREE.DirectionalLight(0xffffff, 1);
     this.gameStore.scene.add(ambientLight, directLight);
 
-    // const light = new THREE.SpotLight(0xff0000, 5);
-    // light.distance = 12;
-    // light.angle = Math.PI / 5;
-    // light.penumbra = 0.1;
-    // light.decay = 0;
-    // light.position.set(35, 5, -10);
-    // light.target.position.set(35, 0, -10);
-    // this.gameStore.scene.add(light, light.target);
-
     // Listeners
     this.eventListener.on("player-hit-car", this.onPlayerHitCar);
     this.eventListener.on("player-out-of-view", this.onPlayerOutOfView);
@@ -126,6 +117,7 @@ export class Game {
     this.cameraManager.reset();
     this.manholeManager.reset();
     this.streetLightManager.reset();
+    this.lightBeamManager.reset();
 
     cancelAnimationFrame(this.animRequestId);
 
