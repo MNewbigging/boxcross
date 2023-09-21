@@ -65,16 +65,14 @@ export class LightBeamManager {
   }
 
   private createBeam() {
-    const { scene } = this.gameStore;
-
     // Get a random road for light to appear on
     const road = this.getRandomRoad();
 
     // Get a random light position for this road
     const position = this.getRandomLightPosition(road.id);
 
-    // Create a light here
-    const light = this.showBeamSpotlight(position);
+    // Show the light here
+    this.showBeamSpotlight(position);
 
     // Keep track for later removal
     this.activeRoadId = road.id;
