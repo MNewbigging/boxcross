@@ -4,26 +4,31 @@ import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { randomRange } from "../utils/utils";
 
-interface Beam {
-  light: THREE.SpotLight;
-  roadId: string;
-}
-
 export class LightBeamManager {
   private spawnTimer = 0;
   private spawnAt = 1;
   private beamLifetime = 1;
   private readonly beamLifetimeDefault = 1;
-  private activeBeam?: Beam;
+  private spotLight = new THREE.SpotLight(0xff0000, 0);
+  private activeRoadId?: string;
   private lightPositions = new Map<string, THREE.Vector3[]>();
 
   constructor(private gameStore: GameStore, private events: EventListener) {
     events.on("street-light-positions", this.onCreateStreetLights);
     events.on("road-removed", this.onRoadRemoved);
+
+    // Setup spotlight properties
+    this.spotLight.distance = 12;
+    this.spotLight.angle = Math.PI / 5;
+    this.spotLight.penumbra = 0.1;
+    this.spotLight.decay = 0;
+
+    // Add to scene once
+    this.gameStore.scene.add(this.spotLight, this.spotLight.target);
   }
 
   update(dt: number) {
-    if (this.activeBeam) {
+    if (this.activeRoadId) {
       this.trackBeam(dt);
     } else {
       this.trackSpawn(dt);
@@ -41,14 +46,13 @@ export class LightBeamManager {
   }
 
   private removeBeam() {
-    if (!this.activeBeam) {
+    if (!this.activeRoadId) {
       return;
     }
 
-    const { scene } = this.gameStore;
-
-    scene.remove(this.activeBeam.light, this.activeBeam.light.target);
-    this.activeBeam = undefined;
+    // Hide the spotlight
+    this.spotLight.intensity = 0;
+    this.activeRoadId = undefined;
   }
 
   private trackSpawn(dt: number) {
@@ -70,14 +74,10 @@ export class LightBeamManager {
     const position = this.getRandomLightPosition(road.id);
 
     // Create a light here
-    const light = this.getBeamSpotlight(position);
-    scene.add(light, light.target);
+    const light = this.showBeamSpotlight(position);
 
     // Keep track for later removal
-    this.activeBeam = {
-      light,
-      roadId: road.id,
-    };
+    this.activeRoadId = road.id;
   }
 
   private getRandomRoad() {
@@ -108,19 +108,15 @@ export class LightBeamManager {
     return position;
   }
 
-  private getBeamSpotlight(position: THREE.Vector3) {
-    const light = new THREE.SpotLight(0xff0000, 5);
-    light.distance = 12;
-    light.angle = Math.PI / 5;
-    light.penumbra = 0.1;
-    light.decay = 0;
+  private showBeamSpotlight(position: THREE.Vector3) {
+    // Assign to new position
+    this.spotLight.position.copy(position);
+    this.spotLight.position.y = 7.5;
+    this.spotLight.target.position.copy(position);
+    this.spotLight.target.position.y = 0;
 
-    light.position.copy(position);
-    light.position.y = 7.5;
-    light.target.position.copy(position);
-    light.target.position.y = 0;
-
-    return light;
+    // Show the spotlight
+    this.spotLight.intensity = 5;
   }
 
   private onCreateStreetLights = (data: {
@@ -134,7 +130,7 @@ export class LightBeamManager {
     this.lightPositions.delete(road.id);
 
     // If there was an active beam on this road
-    if (this.activeBeam?.roadId === road.id) {
+    if (this.activeRoadId === road.id) {
       // Stop it
       this.removeBeam();
     }
