@@ -47,7 +47,7 @@ export class LightBeamManager {
     this.spotLight.decay = 0;
 
     // Setup spotlight cone
-    const coneGeom = new THREE.ConeGeometry(5.2, this.coneHeight, 32, 5, true);
+    const coneGeom = new THREE.ConeGeometry(5.5, this.coneHeight, 32, 5, true);
     coneGeom.translate(0, this.coneHeight / 2, 0);
     BufferGeometryUtils.mergeVertices(coneGeom);
     coneGeom.computeVertexNormals();
@@ -195,7 +195,7 @@ export class LightBeamManager {
     const nextRoadIdx = currentRoadIdx + 1;
 
     // Pick one at random
-    const randomRoadIdx = currentRoadIdx; //Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
+    const randomRoadIdx = Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
 
     return roads[randomRoadIdx];
   }
@@ -264,7 +264,7 @@ export class LightBeamManager {
     tl.to(
       coneMat.uniforms.opacity,
       {
-        value: 0.75,
+        value: 0.535,
         duration: this.beamStartupDuration,
         ease: Bounce.easeIn,
       },

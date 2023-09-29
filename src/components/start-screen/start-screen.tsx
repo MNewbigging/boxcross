@@ -23,7 +23,9 @@ export const StartScreen: React.FC<StartScreenProps> = observer(
               <p>To play:</p>
               <ul>
                 <li>WASD - Move</li>
-                <li>Avoid the cars!</li>
+                <li>Avoid the cars and red street lights</li>
+                <li>Move faster over road crossings</li>
+                <li>Hide in manholes on the roads</li>
                 <li>Cross as many roads as you can!</li>
               </ul>
             </div>

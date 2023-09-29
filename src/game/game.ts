@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { gsap } from "gsap";
 
 import { CameraManager } from "./camera-manager";
 import { CarManager } from "./car-manager";
@@ -21,7 +20,7 @@ import { LightBeamManager } from "./light-beam-manager";
 // Highest level class for the entire game
 export class Game {
   gameStore: GameStore;
-  showIntro = false;
+  showIntro = true;
 
   private gameOver = false;
   private keyboardListener = new KeyboardListener();
