@@ -7,7 +7,7 @@ export class CameraManager {
   private readonly outOfViewDistance = -3; // How far behind camera to be considered out of view
   private outOfViewTimer = 0; // How long player has been out of view
   private readonly outOfViewTimeLimit = 3; // Max time player can be out of view
-  private cameraMoveSpeed = 2;
+  private cameraMoveSpeed = 4;
   private targetOffsetZ = -10;
   private targetPosition = new THREE.Vector3();
 
@@ -15,7 +15,7 @@ export class CameraManager {
 
   static createCamera(canvas: HTMLCanvasElement) {
     return new THREE.PerspectiveCamera(
-      65, // 85 good for debug,
+      85, // 85 good for debug,
       canvas.clientWidth / canvas.clientHeight,
       0.1,
       1000
@@ -93,7 +93,7 @@ export class CameraManager {
 
   update(dt: number) {
     this.checkOutOfView(dt);
-    this.moveCamera(dt);
+    //this.moveCamera(dt);
   }
 
   private checkOutOfView(dt: number) {

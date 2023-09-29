@@ -1,10 +1,12 @@
 import * as THREE from "three";
+import * as BufferGeometryUtils from "three/examples/jsm/utils/BufferGeometryUtils";
 import { Bounce, Linear, Power1, gsap } from "gsap";
 import { EventListener } from "../listeners/event-listener";
 import { GameStore } from "./game-store";
 import { Road } from "./model/road";
 import { randomRange } from "../utils/utils";
-import { Player, PlayerEffect } from "./model/player";
+import { PlayerEffect } from "./model/player";
+import { SpotlightMaterial } from "./spotlight-material";
 
 export class LightBeamManager {
   private spawnTimer = 0;
@@ -29,6 +31,8 @@ export class LightBeamManager {
   private readonly playerTrapDuration = 3;
 
   private spotLight = new THREE.SpotLight(0xff0000, 0);
+  private spotLightCone: THREE.Mesh;
+  private readonly coneHeight = 7.5;
   private activeRoadId?: string;
   private lightPositions = new Map<string, THREE.Vector3[]>();
 
@@ -42,8 +46,24 @@ export class LightBeamManager {
     this.spotLight.penumbra = 0.1;
     this.spotLight.decay = 0;
 
+    // Setup spotlight cone
+    const coneGeom = new THREE.ConeGeometry(5.2, this.coneHeight, 32, 5, true);
+    coneGeom.translate(0, this.coneHeight / 2, 0);
+    BufferGeometryUtils.mergeVertices(coneGeom);
+    coneGeom.computeVertexNormals();
+
+    const cone = new THREE.Mesh(
+      coneGeom,
+      new SpotlightMaterial(this.spotLight)
+    );
+    this.spotLightCone = cone;
+
     // Add to scene once
-    this.gameStore.scene.add(this.spotLight, this.spotLight.target);
+    this.gameStore.scene.add(
+      this.spotLight,
+      this.spotLight.target,
+      this.spotLightCone
+    );
   }
 
   reset() {
@@ -175,7 +195,7 @@ export class LightBeamManager {
     const nextRoadIdx = currentRoadIdx + 1;
 
     // Pick one at random
-    const randomRoadIdx = Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
+    const randomRoadIdx = currentRoadIdx; //Math.random() < 0.5 ? currentRoadIdx : nextRoadIdx;
 
     return roads[randomRoadIdx];
   }
@@ -199,6 +219,9 @@ export class LightBeamManager {
     this.spotLight.position.y = 7.5;
     this.spotLight.target.position.copy(position);
     this.spotLight.target.position.y = 0;
+
+    this.spotLightCone.position.copy(position);
+    this.spotLightCone.position.y -= this.coneHeight;
 
     // Show the spotlight
     this.animateBeamIn();
@@ -236,6 +259,26 @@ export class LightBeamManager {
         this.pullActive = true;
       },
     });
+
+    const coneMat = this.spotLightCone.material as SpotlightMaterial;
+    tl.to(
+      coneMat.uniforms.opacity,
+      {
+        value: 0.75,
+        duration: this.beamStartupDuration,
+        ease: Bounce.easeIn,
+      },
+      "<"
+    );
+    tl.to(
+      coneMat.spotlightAngleScaling,
+      {
+        value: 1,
+        duration: this.beamStartupDuration,
+        ease: Bounce.easeIn,
+      },
+      "<"
+    );
   }
 
   private animateBeamOut() {
@@ -251,6 +294,24 @@ export class LightBeamManager {
       angle: Math.PI / 8,
       duration: this.beamFinishDuration,
     });
+
+    const coneMat = this.spotLightCone.material as SpotlightMaterial;
+    tl.to(
+      coneMat.uniforms.opacity,
+      {
+        value: 0,
+        duration: this.beamFinishDuration,
+      },
+      "<"
+    );
+    tl.to(
+      coneMat.spotlightAngleScaling,
+      {
+        value: 0.5,
+        duration: this.beamFinishDuration,
+      },
+      "<"
+    );
 
     // If player was caught in beam, animate it out too
     const { player } = this.gameStore;
